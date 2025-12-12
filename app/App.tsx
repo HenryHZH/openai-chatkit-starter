@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { BouncingBalls } from "@/components/BouncingBalls";
 import { ChatKitPanel, type FactAction } from "@/components/ChatKitPanel";
 import { useColorScheme } from "@/hooks/useColorScheme";
 
@@ -42,61 +43,8 @@ export default function App() {
 
         <section className="relative overflow-hidden rounded-3xl border border-white/60 bg-white/70 p-6 shadow-lg backdrop-blur-lg ring-1 ring-slate-200/70 dark:border-slate-800/60 dark:bg-slate-900/70 dark:ring-slate-800/80">
           <div className="pointer-events-none absolute inset-0 shimmer-surface" />
-          <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-500 text-xl text-white shadow-lg drop-shadow-lg animate-pulse">
-                ⏳
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-300">
-                  等待时也能有趣
-                </p>
-                <p className="text-sm text-slate-600 dark:text-slate-300">
-                  观看提示打磨、案例梳理和灵感发散的动画，让等待变得更轻松。
-                </p>
-              </div>
-            </div>
-
-            <div className="grid w-full gap-3 sm:w-auto sm:grid-cols-3">
-              <div className="flex items-center gap-3 rounded-2xl bg-white/80 p-3 text-slate-700 shadow-sm ring-1 ring-slate-200/70 backdrop-blur dark:bg-slate-900/80 dark:text-slate-200 dark:ring-slate-800/70">
-                <div
-                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-200 to-sky-200 text-lg text-indigo-900 shadow-inner"
-                  style={{ animation: "floatOrb 12s ease-in-out infinite" }}
-                >
-                  🔍
-                </div>
-                <div>
-                  <p className="text-sm font-semibold">提示打磨</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">微光粒子流动展示思路扩散。</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 rounded-2xl bg-white/80 p-3 text-slate-700 shadow-sm ring-1 ring-slate-200/70 backdrop-blur dark:bg-slate-900/80 dark:text-slate-200 dark:ring-slate-800/70">
-                <div
-                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-200 to-teal-200 text-lg text-indigo-900 shadow-inner"
-                  style={{ animation: "floatOrb 14s ease-in-out infinite", animationDelay: "-2s" }}
-                >
-                  📑
-                </div>
-                <div>
-                  <p className="text-sm font-semibold">资料梳理</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">平滑亮带滚动模拟整理节奏。</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 rounded-2xl bg-white/80 p-3 text-slate-700 shadow-sm ring-1 ring-slate-200/70 backdrop-blur dark:bg-slate-900/80 dark:text-slate-200 dark:ring-slate-800/70">
-                <div
-                  className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-sky-200 to-amber-200 text-lg text-indigo-900 shadow-inner"
-                  style={{ animation: "floatOrb 16s ease-in-out infinite", animationDelay: "-4s" }}
-                >
-                  💡
-                </div>
-                <div>
-                  <p className="text-sm font-semibold">灵感涌动</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">跳动的光点陪你期待回应。</p>
-                </div>
-              </div>
-            </div>
+          <div className="relative min-h-[260px]">
+            <BouncingBalls />
           </div>
         </section>
 
