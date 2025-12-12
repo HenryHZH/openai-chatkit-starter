@@ -13,12 +13,14 @@ export function middleware(req: NextRequest) {
     return NextResponse.next()
   }
 
-  const gateToken = process.env.APP_GATE_TOKEN
+  const expectedPassword = process.env.APP_PASSWORD
 
   // If gate configuration is missing, bypass the middleware entirely
-  if (!gateToken || !process.env.APP_PASSWORD) {
+  if (!expectedPassword) {
     return NextResponse.next()
   }
+
+  const gateToken = process.env.APP_GATE_TOKEN ?? expectedPassword
   const cookie = req.cookies.get('kg_gate')?.value
 
   if (gateToken && cookie === gateToken) {
