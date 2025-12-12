@@ -1,9 +1,10 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 
-export default function UnlockPage() {
+function UnlockContent() {
   const router = useRouter()
   const sp = useSearchParams()
   const next = sp.get('next') ?? '/'
@@ -45,5 +46,13 @@ export default function UnlockPage() {
       </form>
       {error && <p style={{ marginTop: 12 }}>{error}</p>}
     </main>
+  )
+}
+
+export default function UnlockPage() {
+  return (
+    <Suspense fallback={<main style={{ maxWidth: 420, margin: '80px auto', padding: 16 }}>加载中…</main>}>
+      <UnlockContent />
+    </Suspense>
   )
 }
