@@ -49,7 +49,7 @@ export function BouncingBalls() {
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const ballsRef = useRef<Ball[]>([]);
   const sizeRef = useRef({ width: 0, height: 0 });
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | null>(null);
   const dragStateRef = useRef<{ index: number; pointerId: number } | null>(null);
   const dragVelocityRef = useRef({ vx: 0, vy: 0 });
   const lastPointerRef = useRef<{ x: number; y: number; time: number } | null>(null);
