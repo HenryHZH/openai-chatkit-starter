@@ -4,10 +4,11 @@ export async function POST(req: Request) {
   const { password } = await req.json().catch(() => ({ password: '' }))
 
   const expected = process.env.APP_PASSWORD
-  const gateToken = process.env.APP_GATE_TOKEN
-  if (!expected || !gateToken) {
+  if (!expected) {
     return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
   }
+
+  const gateToken = process.env.APP_GATE_TOKEN ?? expected
 
   if (password !== expected) {
     return NextResponse.json({ ok: false }, { status: 401 })
