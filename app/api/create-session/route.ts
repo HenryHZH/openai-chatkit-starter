@@ -21,6 +21,11 @@ export async function POST(request: Request): Promise<Response> {
   if (request.method !== "POST") {
     return methodNotAllowedResponse();
   }
+
+  const gateValidation = validateAppPassword(request);
+  if (gateValidation) {
+    return gateValidation;
+  }
   let sessionCookie: string | null = null;
   try {
     const openaiApiKey = process.env.OPENAI_API_KEY;
@@ -137,6 +142,30 @@ export async function POST(request: Request): Promise<Response> {
 
 export async function GET(): Promise<Response> {
   return methodNotAllowedResponse();
+}
+
+function validateAppPassword(request: Request): Response | null {
+  const expectedPassword = process.env.APP_PASSWORD;
+  if (!expectedPassword) {
+    return null;
+  }
+
+  const gateToken = process.env.APP_GATE_TOKEN ?? expectedPassword;
+  const providedToken = getCookieValue(
+    request.headers.get("cookie"),
+    "kg_gate"
+  );
+
+  if (gateToken && providedToken === gateToken) {
+    return null;
+  }
+
+  return buildJsonResponse(
+    { error: "Unauthorized" },
+    401,
+    { "Content-Type": "application/json" },
+    null
+  );
 }
 
 function methodNotAllowedResponse(): Response {
