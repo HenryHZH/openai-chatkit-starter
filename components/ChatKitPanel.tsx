@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChatKit, useChatKit } from "@openai/chatkit-react";
 import {
   STARTER_PROMPTS,
@@ -261,23 +261,38 @@ export function ChatKitPanel({
     [isWorkflowConfigured, setErrorState]
   );
 
-  const chatkit = useChatKit({
-    api: { getClientSecret },
-    theme: {
+  const themeConfig = useMemo(
+    () => ({
       colorScheme: theme,
       ...getThemeConfig(theme),
-    },
-    startScreen: {
+    }),
+    [theme]
+  );
+
+  const startScreenConfig = useMemo(
+    () => ({
       greeting: GREETING,
       prompts: STARTER_PROMPTS,
-    },
-    composer: {
+    }),
+    []
+  );
+
+  const composerConfig = useMemo(
+    () => ({
       placeholder: PLACEHOLDER_INPUT,
       attachments: {
         // Enable attachments
         enabled: true,
       },
-    },
+    }),
+    []
+  );
+
+  const chatkit = useChatKit({
+    api: { getClientSecret },
+    theme: themeConfig,
+    startScreen: startScreenConfig,
+    composer: composerConfig,
     threadItemActions: {
       feedback: false,
     },
