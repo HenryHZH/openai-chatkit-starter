@@ -56,7 +56,7 @@ const renderNodes = async (nodes: Iterable<Element>) => {
   const mermaid = await loadMermaid();
   if (!mermaid) return;
 
-  mermaid.initialize({ startOnLoad: false, securityLevel: "loose" });
+  mermaid.initialize({ startOnLoad: false });
 
   try {
     if (typeof mermaid.run === "function") {
