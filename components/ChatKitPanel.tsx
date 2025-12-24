@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { OpenAIChatKit } from "@openai/chatkit";
 import { ChatKit, useChatKit } from "@openai/chatkit-react";
 import {
   STARTER_PROMPTS,
@@ -346,7 +347,57 @@ export function ChatKitPanel({
     },
   });
 
-  useMermaidRenderer(widgetInstanceKey);
+  const triggerMermaidRender = useMermaidRenderer(widgetInstanceKey);
+
+  useEffect(() => {
+    if (!isBrowser) {
+      return;
+    }
+
+    let currentInstance: OpenAIChatKit | null = null;
+    let cleanupListeners: (() => void) | null = null;
+    const attachListeners = () => {
+      const instance = chatkit.ref.current;
+      if (!instance || instance === currentInstance) {
+        return;
+      }
+
+      currentInstance = instance;
+      cleanupListeners?.();
+
+      const events: string[] = [
+        "chatkit.response.start",
+        "chatkit.response.end",
+        "chatkit.thread.change",
+        "chatkit.thread.load.end",
+        "chatkit.log",
+      ];
+
+      const handleRender = () => {
+        void triggerMermaidRender();
+      };
+
+      events.forEach((eventName) =>
+        instance.addEventListener(eventName, handleRender)
+      );
+
+      cleanupListeners = () => {
+        events.forEach((eventName) =>
+          instance.removeEventListener(eventName, handleRender)
+        );
+      };
+
+      void triggerMermaidRender();
+    };
+
+    const pollId = window.setInterval(attachListeners, 250);
+    attachListeners();
+
+    return () => {
+      window.clearInterval(pollId);
+      cleanupListeners?.();
+    };
+  }, [chatkit.ref, triggerMermaidRender, widgetInstanceKey]);
 
   const activeError = errors.session ?? errors.integration;
   const blockingError = errors.script ?? activeError;
