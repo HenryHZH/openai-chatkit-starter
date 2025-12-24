@@ -15,6 +15,30 @@ const MERMAID_CODE_SELECTOR =
 
 let mermaidLoader: Promise<MermaidAPI | null> | null = null;
 
+const collectShadowRoots = (root: Element | ShadowRoot) => {
+  const roots = new Set<Element | ShadowRoot>([root]);
+  const queue: Array<Element | ShadowRoot> = [root];
+
+  while (queue.length) {
+    const current = queue.pop();
+    if (!current || !(current instanceof Element || current instanceof ShadowRoot)) {
+      continue;
+    }
+
+    const children = Array.from(current.children ?? []);
+    for (const child of children) {
+      queue.push(child);
+
+      if (child.shadowRoot) {
+        roots.add(child.shadowRoot);
+        queue.push(child.shadowRoot);
+      }
+    }
+  }
+
+  return Array.from(roots);
+};
+
 type MermaidAPI = {
   initialize: (config: { startOnLoad: boolean; securityLevel?: string }) => void;
   run?: (options: { nodes: Iterable<Element> }) => Promise<unknown> | unknown;
@@ -165,6 +189,9 @@ export function useMermaidRenderer(resetKey?: unknown) {
       return;
     }
 
+    let observer: MutationObserver | null = null;
+    const shadowObservers: MutationObserver[] = [];
+    const observedShadowRoots = new Set<ShadowRoot | Element>();
     let fallbackObserver: MutationObserver | null = null;
     let cancelled = false;
     let observedRoot: Element | ShadowRoot | null = null;
@@ -187,12 +214,11 @@ export function useMermaidRenderer(resetKey?: unknown) {
       if (!host || cancelled) return;
 
       const root = host.shadowRoot ?? host;
+      const searchableRoots = collectShadowRoots(root);
 
-      const codeBlocks = walkShadowInclusive<HTMLElement>(
-        root,
-        (node) => node.matches?.(MERMAID_CODE_SELECTOR) ?? false
+      const codeBlocks = searchableRoots.flatMap((domRoot) =>
+        Array.from(domRoot.querySelectorAll<HTMLElement>(MERMAID_CODE_SELECTOR))
       );
-
       codeBlocks.forEach((block) => {
         const container = block.closest<HTMLElement>("pre");
         if (!container || container.dataset.mermaidProcessed === "true") {
@@ -259,15 +285,44 @@ export function useMermaidRenderer(resetKey?: unknown) {
         void setView("rendered");
       });
 
-      const mermaidNodes = walkShadowInclusive<HTMLElement>(
-        root,
-        (node) => node.classList?.contains("mermaid") ?? false
-      ).filter((node) => node.dataset.mermaidRendered !== "true");
+      const mermaidNodes = searchableRoots
+        .flatMap((domRoot) =>
+          Array.from(domRoot.querySelectorAll<HTMLElement>(".mermaid"))
+        )
+        .filter((node) => node.dataset.mermaidRendered !== "true");
       if (!mermaidNodes.length || cancelled) {
         return;
       }
 
       await ensureNodesRendered(mermaidNodes);
+    };
+
+    const attachShadowObservers = () => {
+      const host = selectChatKitHost();
+      if (!host || cancelled) return;
+
+      const root = host.shadowRoot ?? host;
+      const rootsToObserve = collectShadowRoots(root);
+
+      rootsToObserve.forEach((rootToObserve) => {
+        if (observedShadowRoots.has(rootToObserve)) {
+          return;
+        }
+
+        const shadowObserver = new MutationObserver(() => {
+          void renderMermaid();
+          attachShadowObservers();
+        });
+
+        shadowObserver.observe(rootToObserve, {
+          childList: true,
+          subtree: true,
+          characterData: true,
+        });
+
+        observedShadowRoots.add(rootToObserve);
+        shadowObservers.push(shadowObserver);
+      });
     };
 
     const startShadowPolling = () => {
@@ -307,10 +362,23 @@ export function useMermaidRenderer(resetKey?: unknown) {
       observers.forEach((observer) => observer.disconnect());
       observers.clear();
 
-      observeShadowTree(root, renderMermaid, observers);
+      observer = new MutationObserver(() => {
+        void renderMermaid();
+        attachShadowObservers();
+
+        if (host.shadowRoot && host.shadowRoot !== observedRoot) {
+          attachObserver();
+        }
+      });
+      observer.observe(root, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+      });
 
       observedRoot = root;
 
+      attachShadowObservers();
       void renderMermaid();
 
       if (!host.shadowRoot) {
@@ -340,7 +408,8 @@ export function useMermaidRenderer(resetKey?: unknown) {
 
     return () => {
       cancelled = true;
-      observers.forEach((observer) => observer.disconnect());
+      observer?.disconnect();
+      shadowObservers.forEach((shadowObserver) => shadowObserver.disconnect());
       fallbackObserver?.disconnect();
       stopShadowPolling();
     };
