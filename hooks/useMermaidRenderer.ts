@@ -96,6 +96,93 @@ const renderNodes = async (nodes: Iterable<Element>) => {
   }
 };
 
+const walkShadowInclusive = <T extends Element = HTMLElement>(
+  root: Element | ShadowRoot,
+  predicate: (node: Element) => boolean
+) => {
+  const results: T[] = [];
+  const stack: (Element | ShadowRoot)[] = [root];
+
+  while (stack.length) {
+    const current = stack.pop();
+    if (!current) continue;
+
+    if (current instanceof Element && predicate(current)) {
+      results.push(current as T);
+    }
+
+    const children =
+      current instanceof Element || current instanceof ShadowRoot
+        ? Array.from(current.children)
+        : [];
+
+    for (const child of children) {
+      stack.push(child);
+      const shadow = (child as Element & { shadowRoot?: ShadowRoot })
+        .shadowRoot;
+      if (shadow) {
+        stack.push(shadow);
+      }
+      if (child instanceof HTMLSlotElement) {
+        stack.push(
+          ...child.assignedElements({ flatten: true }).filter(Boolean)
+        );
+      }
+    }
+  }
+
+  return results;
+};
+
+const observeShadowTree = (
+  root: Element | ShadowRoot,
+  renderMermaid: () => void,
+  observers: Set<MutationObserver>
+) => {
+  const seen = new WeakSet<Element | ShadowRoot>();
+
+  const attachObserver = (node: Element | ShadowRoot) => {
+    if (seen.has(node)) return;
+    seen.add(node);
+
+    const observer = new MutationObserver(() => {
+      void renderMermaid();
+
+      const shadowHosts = walkShadowInclusive<HTMLElement>(node, (el) =>
+        Boolean((el as HTMLElement & { shadowRoot?: ShadowRoot }).shadowRoot)
+      );
+      shadowHosts.forEach((host) => {
+        const shadow = (host as HTMLElement & { shadowRoot?: ShadowRoot })
+          .shadowRoot;
+        if (shadow) {
+          attachObserver(shadow);
+        }
+      });
+    });
+
+    observer.observe(node, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+
+    observers.add(observer);
+
+    const directShadowHosts = walkShadowInclusive<HTMLElement>(node, (el) =>
+      Boolean((el as HTMLElement & { shadowRoot?: ShadowRoot }).shadowRoot)
+    );
+
+    directShadowHosts.forEach((host) => {
+      const shadow = (host as HTMLElement & { shadowRoot?: ShadowRoot }).shadowRoot;
+      if (shadow) {
+        attachObserver(shadow);
+      }
+    });
+  };
+
+  attachObserver(root);
+};
+
 export function useMermaidRenderer(resetKey?: unknown) {
   useEffect(() => {
     if (!isBrowser) {
@@ -109,6 +196,7 @@ export function useMermaidRenderer(resetKey?: unknown) {
     let cancelled = false;
     let observedRoot: Element | ShadowRoot | null = null;
     let shadowCheckId: number | null = null;
+    const observers = new Set<MutationObserver>();
 
     const markNodesRendered = (nodes: Iterable<HTMLElement>) => {
       for (const node of nodes) {
@@ -267,11 +355,12 @@ export function useMermaidRenderer(resetKey?: unknown) {
       const root = host.shadowRoot ?? host;
       if (!root) return false;
 
-      if (observer && observedRoot === root) {
+      if (observedRoot === root) {
         return true;
       }
 
-      observer?.disconnect();
+      observers.forEach((observer) => observer.disconnect());
+      observers.clear();
 
       observer = new MutationObserver(() => {
         void renderMermaid();
