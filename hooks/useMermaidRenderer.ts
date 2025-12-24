@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 const isBrowser = typeof window !== "undefined";
 
@@ -96,94 +96,9 @@ const renderNodes = async (nodes: Iterable<Element>) => {
   }
 };
 
-const walkShadowInclusive = <T extends Element = HTMLElement>(
-  root: Element | ShadowRoot,
-  predicate: (node: Element) => boolean
-) => {
-  const results: T[] = [];
-  const stack: (Element | ShadowRoot)[] = [root];
-
-  while (stack.length) {
-    const current = stack.pop();
-    if (!current) continue;
-
-    if (current instanceof Element && predicate(current)) {
-      results.push(current as T);
-    }
-
-    const children =
-      current instanceof Element || current instanceof ShadowRoot
-        ? Array.from(current.children)
-        : [];
-
-    for (const child of children) {
-      stack.push(child);
-      const shadow = (child as Element & { shadowRoot?: ShadowRoot })
-        .shadowRoot;
-      if (shadow) {
-        stack.push(shadow);
-      }
-      if (child instanceof HTMLSlotElement) {
-        stack.push(
-          ...child.assignedElements({ flatten: true }).filter(Boolean)
-        );
-      }
-    }
-  }
-
-  return results;
-};
-
-const observeShadowTree = (
-  root: Element | ShadowRoot,
-  renderMermaid: () => void,
-  observers: Set<MutationObserver>
-) => {
-  const seen = new WeakSet<Element | ShadowRoot>();
-
-  const attachObserver = (node: Element | ShadowRoot) => {
-    if (seen.has(node)) return;
-    seen.add(node);
-
-    const observer = new MutationObserver(() => {
-      void renderMermaid();
-
-      const shadowHosts = walkShadowInclusive<HTMLElement>(node, (el) =>
-        Boolean((el as HTMLElement & { shadowRoot?: ShadowRoot }).shadowRoot)
-      );
-      shadowHosts.forEach((host) => {
-        const shadow = (host as HTMLElement & { shadowRoot?: ShadowRoot })
-          .shadowRoot;
-        if (shadow) {
-          attachObserver(shadow);
-        }
-      });
-    });
-
-    observer.observe(node, {
-      childList: true,
-      subtree: true,
-      characterData: true,
-    });
-
-    observers.add(observer);
-
-    const directShadowHosts = walkShadowInclusive<HTMLElement>(node, (el) =>
-      Boolean((el as HTMLElement & { shadowRoot?: ShadowRoot }).shadowRoot)
-    );
-
-    directShadowHosts.forEach((host) => {
-      const shadow = (host as HTMLElement & { shadowRoot?: ShadowRoot }).shadowRoot;
-      if (shadow) {
-        attachObserver(shadow);
-      }
-    });
-  };
-
-  attachObserver(root);
-};
-
 export function useMermaidRenderer(resetKey?: unknown) {
+  const renderRef = useRef<() => Promise<void>>(async () => {});
+
   useEffect(() => {
     if (!isBrowser) {
       return;
@@ -296,6 +211,8 @@ export function useMermaidRenderer(resetKey?: unknown) {
 
       await ensureNodesRendered(mermaidNodes);
     };
+
+    renderRef.current = () => renderMermaid();
 
     const attachShadowObservers = () => {
       const host = selectChatKitHost();
@@ -412,8 +329,11 @@ export function useMermaidRenderer(resetKey?: unknown) {
       shadowObservers.forEach((shadowObserver) => shadowObserver.disconnect());
       fallbackObserver?.disconnect();
       stopShadowPolling();
+      renderRef.current = async () => {};
     };
   }, [resetKey]);
+
+  return useCallback(() => renderRef.current(), []);
 }
 
 export default useMermaidRenderer;
