@@ -78,6 +78,8 @@ export function useMermaidRenderer(resetKey?: unknown) {
     let observer: MutationObserver | null = null;
     let fallbackObserver: MutationObserver | null = null;
     let cancelled = false;
+    let observedRoot: Element | ShadowRoot | null = null;
+    let shadowCheckId: number | null = null;
 
     const renderMermaid = async () => {
       const host = selectChatKitHost();
@@ -108,13 +110,48 @@ export function useMermaidRenderer(resetKey?: unknown) {
       await renderNodes(mermaidNodes);
     };
 
+    const startShadowPolling = () => {
+      if (shadowCheckId) return;
+
+      shadowCheckId = window.setInterval(() => {
+        const host = selectChatKitHost();
+        if (!host?.shadowRoot || cancelled) {
+          return;
+        }
+
+        const shadowRoot = host.shadowRoot;
+        if (shadowRoot && shadowRoot !== observedRoot) {
+          attachObserver();
+        }
+      }, 250);
+    };
+
+    const stopShadowPolling = () => {
+      if (!shadowCheckId) return;
+
+      window.clearInterval(shadowCheckId);
+      shadowCheckId = null;
+    };
+
     const attachObserver = () => {
       const host = selectChatKitHost();
       if (!host) return false;
 
       const root = host.shadowRoot ?? host;
+      if (!root) return false;
+
+      if (observer && observedRoot === root) {
+        return true;
+      }
+
+      observer?.disconnect();
+
       observer = new MutationObserver(() => {
         void renderMermaid();
+
+        if (host.shadowRoot && host.shadowRoot !== observedRoot) {
+          attachObserver();
+        }
       });
       observer.observe(root, {
         childList: true,
@@ -122,7 +159,14 @@ export function useMermaidRenderer(resetKey?: unknown) {
         characterData: true,
       });
 
+      observedRoot = root;
+
       void renderMermaid();
+
+      if (!host.shadowRoot) {
+        startShadowPolling();
+      }
+
       return true;
     };
 
@@ -148,6 +192,7 @@ export function useMermaidRenderer(resetKey?: unknown) {
       cancelled = true;
       observer?.disconnect();
       fallbackObserver?.disconnect();
+      stopShadowPolling();
     };
   }, [resetKey]);
 }
