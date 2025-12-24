@@ -10,8 +10,68 @@ const selectChatKitHost = () =>
 const MERMAID_CDN =
   "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js";
 
-const MERMAID_CODE_SELECTOR =
-  "pre code.language-mermaid, pre code.lang-mermaid, pre code[data-language=\"mermaid\"], pre code[data-lang=\"mermaid\"]";
+const MERMAID_LANGUAGE_HINTS = new Set([
+  "mermaid",
+  "flowchart",
+  "graph",
+  "sequence",
+  "sequencediagram",
+  "classdiagram",
+  "statediagram",
+  "statediagram-v2",
+  "erdiagram",
+  "journey",
+  "gantt",
+  "pie",
+  "quadrantchart",
+  "requirementdiagram",
+  "gitgraph",
+  "mindmap",
+  "timeline",
+  "sankey",
+  "sankey-beta",
+  "xychart-beta",
+]);
+
+const MERMAID_DEFINITION_PATTERNS = [
+  /^\s*(graph|flowchart)\s+(TB|TD|LR|RL|BT)\b/i,
+  /^\s*sequenceDiagram\b/i,
+  /^\s*classDiagram\b/i,
+  /^\s*stateDiagram(-v2)?\b/i,
+  /^\s*erDiagram\b/i,
+  /^\s*journey\b/i,
+  /^\s*gantt\b/i,
+  /^\s*pie\b/i,
+  /^\s*quadrantChart\b/i,
+  /^\s*requirementDiagram\b/i,
+  /^\s*gitGraph\b/i,
+  /^\s*mindmap\b/i,
+  /^\s*sankey(-beta)?\b/i,
+  /^\s*timeline\b/i,
+  /^\s*xychart-beta\b/i,
+];
+
+const ALL_CODE_SELECTOR = "pre code";
+
+const getCodeLanguage = (block: HTMLElement) => {
+  const dataLanguage =
+    (block.dataset.language ?? block.dataset.lang ?? "").toLowerCase();
+  if (dataLanguage) return dataLanguage;
+
+  const classNames = block.className ?? "";
+  const match = classNames.match(/language-([a-z0-9+-]+)/i);
+  if (match) {
+    return match[1].toLowerCase();
+  }
+
+  return "";
+};
+
+const isMermaidLanguage = (language: string) =>
+  MERMAID_LANGUAGE_HINTS.has(language.toLowerCase());
+
+const isMermaidDefinition = (definition: string) =>
+  MERMAID_DEFINITION_PATTERNS.some((pattern) => pattern.test(definition));
 
 let mermaidLoader: Promise<MermaidAPI | null> | null = null;
 
@@ -132,7 +192,7 @@ export function useMermaidRenderer(resetKey?: unknown) {
       const searchableRoots = collectShadowRoots(root);
 
       const codeBlocks = searchableRoots.flatMap((domRoot) =>
-        Array.from(domRoot.querySelectorAll<HTMLElement>(MERMAID_CODE_SELECTOR))
+        Array.from(domRoot.querySelectorAll<HTMLElement>(ALL_CODE_SELECTOR))
       );
       codeBlocks.forEach((block) => {
         const container = block.closest<HTMLElement>("pre");
@@ -141,6 +201,12 @@ export function useMermaidRenderer(resetKey?: unknown) {
         }
 
         const definition = block.textContent?.trim() ?? "";
+        const language = getCodeLanguage(block);
+
+        if (!definition) return;
+        if (!isMermaidLanguage(language) && !isMermaidDefinition(definition)) {
+          return;
+        }
         const mermaidHost = document.createElement("div");
         mermaidHost.className = "mermaid";
         mermaidHost.textContent = definition;
