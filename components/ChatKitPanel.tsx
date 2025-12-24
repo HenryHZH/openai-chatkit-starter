@@ -12,6 +12,7 @@ import {
 } from "@/lib/config";
 import { ErrorOverlay } from "./ErrorOverlay";
 import type { ColorScheme } from "@/hooks/useColorScheme";
+import { useMermaidRenderer } from "@/hooks/useMermaidRenderer";
 
 export type FactAction = {
   type: "save";
@@ -344,6 +345,8 @@ export function ChatKitPanel({
       console.error("ChatKit error", error);
     },
   });
+
+  useMermaidRenderer(widgetInstanceKey);
 
   const activeError = errors.session ?? errors.integration;
   const blockingError = errors.script ?? activeError;
