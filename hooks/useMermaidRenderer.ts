@@ -10,6 +10,9 @@ const selectChatKitHost = () =>
 const MERMAID_CDN =
   "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js";
 
+const MERMAID_CODE_SELECTOR =
+  "pre code.language-mermaid, pre code.lang-mermaid, pre code[data-language=\"mermaid\"], pre code[data-lang=\"mermaid\"]";
+
 let mermaidLoader: Promise<MermaidAPI | null> | null = null;
 
 type MermaidAPI = {
@@ -81,13 +84,24 @@ export function useMermaidRenderer(resetKey?: unknown) {
     let observedRoot: Element | ShadowRoot | null = null;
     let shadowCheckId: number | null = null;
 
+    const markNodesRendered = (nodes: Iterable<HTMLElement>) => {
+      for (const node of nodes) {
+        node.dataset.mermaidRendered = "true";
+      }
+    };
+
+    const ensureNodesRendered = async (nodes: Iterable<HTMLElement>) => {
+      await renderNodes(nodes);
+      markNodesRendered(nodes);
+    };
+
     const renderMermaid = async () => {
       const host = selectChatKitHost();
       if (!host || cancelled) return;
 
       const root = host.shadowRoot ?? host;
 
-      const codeBlocks = root.querySelectorAll<HTMLDivElement>("code.language-mermaid");
+      const codeBlocks = root.querySelectorAll<HTMLElement>(MERMAID_CODE_SELECTOR);
       codeBlocks.forEach((block) => {
         const container = block.closest<HTMLElement>("pre");
         if (!container || container.dataset.mermaidProcessed === "true") {
@@ -98,16 +112,70 @@ export function useMermaidRenderer(resetKey?: unknown) {
         const mermaidHost = document.createElement("div");
         mermaidHost.className = "mermaid";
         mermaidHost.textContent = definition;
+
+        const sourceBlock = container.cloneNode(true) as HTMLElement;
+        sourceBlock.style.display = "none";
+        sourceBlock.dataset.mermaidSource = "true";
+
+        const toggleButton = document.createElement("button");
+        toggleButton.type = "button";
+        toggleButton.textContent = "查看源码";
+        toggleButton.style.cssText =
+          "align-self:flex-end;padding:4px 10px;font-size:12px;border-radius:8px;border:1px solid #cbd5e1;" +
+          "background:#0ea5e9;color:white;cursor:pointer;";
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "mermaid-toggle-wrapper";
+        wrapper.style.display = "flex";
+        wrapper.style.flexDirection = "column";
+        wrapper.style.gap = "8px";
+        wrapper.style.padding = "12px";
+        wrapper.style.border = "1px solid #e2e8f0";
+        wrapper.style.borderRadius = "12px";
+        wrapper.style.background = "var(--mermaid-wrapper-bg, #f8fafc)";
+        wrapper.dataset.mermaidView = "rendered";
+
+        const setView = async (mode: "rendered" | "source") => {
+          wrapper.dataset.mermaidView = mode;
+
+          if (mode === "rendered") {
+            sourceBlock.style.display = "none";
+            mermaidHost.style.display = "";
+            toggleButton.textContent = "查看源码";
+
+            if (mermaidHost.dataset.mermaidRendered !== "true") {
+              await ensureNodesRendered([mermaidHost]);
+            }
+          } else {
+            sourceBlock.style.display = "";
+            mermaidHost.style.display = "none";
+            toggleButton.textContent = "查看图表";
+          }
+        };
+
+        toggleButton.addEventListener("click", () => {
+          const nextView =
+            wrapper.dataset.mermaidView === "rendered" ? "source" : "rendered";
+
+          void setView(nextView);
+        });
+
+        wrapper.append(toggleButton, mermaidHost, sourceBlock);
+
         container.dataset.mermaidProcessed = "true";
-        container.replaceWith(mermaidHost);
+        container.replaceWith(wrapper);
+
+        void setView("rendered");
       });
 
-      const mermaidNodes = root.querySelectorAll<HTMLElement>(".mermaid");
+      const mermaidNodes = Array.from(
+        root.querySelectorAll<HTMLElement>(".mermaid")
+      ).filter((node) => node.dataset.mermaidRendered !== "true");
       if (!mermaidNodes.length || cancelled) {
         return;
       }
 
-      await renderNodes(mermaidNodes);
+      await ensureNodesRendered(mermaidNodes);
     };
 
     const startShadowPolling = () => {
