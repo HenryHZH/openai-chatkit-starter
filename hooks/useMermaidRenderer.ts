@@ -103,6 +103,13 @@ type MermaidAPI = {
   initialize: (config: { startOnLoad: boolean; securityLevel?: string }) => void;
   run?: (options: { nodes: Iterable<Element> }) => Promise<unknown> | unknown;
   init?: (config: unknown, nodes: Iterable<Element>) => void;
+  render?: (
+    id: string,
+    definition: string
+  ) => Promise<{
+    svg: string;
+    bindFunctions?: (element: Element) => void;
+  }>;
 };
 
 const loadMermaid = () => {
@@ -139,20 +146,35 @@ const loadMermaid = () => {
   return mermaidLoader;
 };
 
-const renderNodes = async (nodes: Iterable<Element>) => {
-  const mermaid = await loadMermaid();
-  if (!mermaid) return;
+const generateRenderId = () =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `mermaid-${Math.random().toString(36).slice(2)}`;
 
-  mermaid.initialize({ startOnLoad: false });
+const renderDefinition = async (
+  host: HTMLElement,
+  definition: string,
+  id?: string
+) => {
+  const mermaid = await loadMermaid();
+  if (!mermaid || typeof mermaid.render !== "function") return;
+
+  mermaid.initialize({ startOnLoad: false, securityLevel: "strict" });
 
   try {
-    if (typeof mermaid.run === "function") {
-      await mermaid.run({ nodes });
-    } else if (typeof mermaid.init === "function") {
-      mermaid.init(undefined, nodes);
-    }
+    const { svg, bindFunctions } = await mermaid.render(
+      id ?? generateRenderId(),
+      definition
+    );
+    host.innerHTML = svg;
+    bindFunctions?.(host);
+    host.dataset.mermaidRendered = "true";
   } catch (error) {
     console.error("Failed to render mermaid diagram", error);
+    host.innerHTML = "";
+    host.dataset.mermaidRendered = "false";
+    host.textContent = definition;
+    host.style.whiteSpace = "pre-wrap";
   }
 };
 
@@ -173,15 +195,14 @@ export function useMermaidRenderer(resetKey?: unknown) {
     let shadowCheckId: number | null = null;
     const observers = new Set<MutationObserver>();
 
-    const markNodesRendered = (nodes: Iterable<HTMLElement>) => {
-      for (const node of nodes) {
-        node.dataset.mermaidRendered = "true";
-      }
-    };
-
     const ensureNodesRendered = async (nodes: Iterable<HTMLElement>) => {
-      await renderNodes(nodes);
-      markNodesRendered(nodes);
+      for (const node of nodes) {
+        const definition =
+          node.dataset.mermaidDefinition ?? node.textContent?.trim() ?? "";
+        if (!definition) continue;
+
+        await renderDefinition(node, definition);
+      }
     };
 
     const renderMermaid = async () => {
@@ -209,7 +230,7 @@ export function useMermaidRenderer(resetKey?: unknown) {
         }
         const mermaidHost = document.createElement("div");
         mermaidHost.className = "mermaid";
-        mermaidHost.textContent = definition;
+        mermaidHost.dataset.mermaidDefinition = definition;
 
         const sourceBlock = container.cloneNode(true) as HTMLElement;
         sourceBlock.style.display = "none";
