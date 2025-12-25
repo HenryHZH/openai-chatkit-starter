@@ -2,6 +2,7 @@
 
 import type { CSSProperties } from "react";
 import { useCallback, useEffect, useState } from "react";
+import { Mermaid } from "./Mermaid";
 
 type MermaidCardProps = {
   definition: string;
@@ -145,6 +146,17 @@ export function MermaidCard({ definition }: MermaidCardProps) {
       }}
     >
       <div style={{ fontWeight: 600, marginBottom: 8 }}>Mermaid diagram</div>
+      <div
+        style={{
+          border: "1px solid #cbd5e1",
+          borderRadius: 8,
+          padding: 12,
+          background: "#fff",
+          marginBottom: 12,
+        }}
+      >
+        <Mermaid definition={definition} />
+      </div>
       <pre
         style={{
           whiteSpace: "pre-wrap",
