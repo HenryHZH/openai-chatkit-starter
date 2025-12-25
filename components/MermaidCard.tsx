@@ -2,12 +2,15 @@
 
 import type { CSSProperties } from "react";
 import { useCallback, useEffect, useState } from "react";
+import { Mermaid } from "./Mermaid";
 
 type MermaidCardProps = {
   definition: string;
 };
 
 const MAX_CODE_LENGTH = 20_000;
+
+type MermaidView = "diagram" | "code";
 
 const toBase64Url = (bytes: Uint8Array) => {
   let binary = "";
@@ -77,6 +80,7 @@ const encodeMermaidState = async (code: string) => {
 export function MermaidCard({ definition }: MermaidCardProps) {
   const [copied, setCopied] = useState(false);
   const [encodedState, setEncodedState] = useState<string | null>(null);
+  const [view, setView] = useState<MermaidView>("diagram");
 
   useEffect(() => {
     let cancelled = false;
@@ -132,6 +136,36 @@ export function MermaidCard({ definition }: MermaidCardProps) {
     window.open(inkUrl, "_blank", "noopener,noreferrer");
   }, [inkUrl]);
 
+  const renderToggle = (
+    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+      <span style={{ fontWeight: 600 }}>视图</span>
+      <div style={{ display: "flex", gap: 6 }}>
+        <button
+          type="button"
+          onClick={() => setView("diagram")}
+          style={{
+            ...buttonStyle,
+            background: view === "diagram" ? "#0f172a" : "#e2e8f0",
+            color: view === "diagram" ? "#e2e8f0" : "#0f172a",
+          }}
+        >
+          渲染
+        </button>
+        <button
+          type="button"
+          onClick={() => setView("code")}
+          style={{
+            ...buttonStyle,
+            background: view === "code" ? "#0f172a" : "#e2e8f0",
+            color: view === "code" ? "#e2e8f0" : "#0f172a",
+          }}
+        >
+          源码
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div
       style={{
@@ -144,22 +178,47 @@ export function MermaidCard({ definition }: MermaidCardProps) {
         fontFamily: "Inter, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
       }}
     >
-      <div style={{ fontWeight: 600, marginBottom: 8 }}>Mermaid diagram</div>
-      <pre
+      <div
         style={{
-          whiteSpace: "pre-wrap",
-          background: "#0f172a",
-          color: "#e2e8f0",
-          padding: "10px 12px",
-          borderRadius: 8,
-          overflowX: "auto",
-          fontFamily: "SFMono-Regular, Consolas, \"Liberation Mono\", Menlo, monospace",
-          fontSize: 13,
-          margin: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 12,
         }}
       >
-        <code>{`\`\`\`mermaid\n${definition.trim()}\n\`\`\``}</code>
-      </pre>
+        <div style={{ fontWeight: 600 }}>Mermaid diagram</div>
+        {renderToggle}
+      </div>
+      {view === "diagram" ? (
+        <div
+          style={{
+            border: "1px solid #cbd5e1",
+            borderRadius: 8,
+            padding: 12,
+            background: "#fff",
+            marginBottom: 12,
+          }}
+        >
+          <Mermaid definition={definition} />
+        </div>
+      ) : (
+        <pre
+          style={{
+            whiteSpace: "pre-wrap",
+            background: "#0f172a",
+            color: "#e2e8f0",
+            padding: "10px 12px",
+            borderRadius: 8,
+            overflowX: "auto",
+            fontFamily:
+              "SFMono-Regular, Consolas, \"Liberation Mono\", Menlo, monospace",
+            fontSize: 13,
+            margin: 0,
+          }}
+        >
+          <code>{`\`\`\`mermaid\n${definition.trim()}\n\`\`\``}</code>
+        </pre>
+      )}
       <div
         style={{
           display: "flex",
