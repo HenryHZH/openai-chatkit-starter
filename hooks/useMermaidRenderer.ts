@@ -1,7 +1,6 @@
 import { createElement, useCallback, useEffect, useRef } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { Mermaid } from "@/components/Mermaid";
-import { renderMermaidDefinition } from "./mermaidUtils";
+import { MermaidCard } from "@/components/MermaidCard";
 
 const isBrowser = typeof window !== "undefined";
 
@@ -114,16 +113,6 @@ export function useMermaidRenderer(resetKey?: unknown) {
     let shadowCheckId: number | null = null;
     const observers = new Set<MutationObserver>();
 
-    const ensureNodesRendered = async (nodes: Iterable<HTMLElement>) => {
-      for (const node of nodes) {
-        const definition =
-          node.dataset.mermaidDefinition ?? node.textContent?.trim() ?? "";
-        if (!definition) continue;
-
-        await renderMermaidDefinition(node, definition);
-      }
-    };
-
     const mermaidRoots = new Set<Root>();
 
     const renderMermaid = async () => {
@@ -157,22 +146,11 @@ export function useMermaidRenderer(resetKey?: unknown) {
         const root = createRoot(mountNode);
         mermaidRoots.add(root);
         root.render(
-          createElement(Mermaid, {
+          createElement(MermaidCard, {
             definition,
           })
         );
       });
-
-      const mermaidNodes = searchableRoots
-        .flatMap((domRoot) =>
-          Array.from(domRoot.querySelectorAll<HTMLElement>(".mermaid"))
-        )
-        .filter((node) => node.dataset.mermaidRendered !== "true");
-      if (!mermaidNodes.length || cancelled) {
-        return;
-      }
-
-      await ensureNodesRendered(mermaidNodes);
     };
 
     renderRef.current = () => renderMermaid();
