@@ -178,7 +178,19 @@ export function MermaidCard({ definition }: MermaidCardProps) {
         fontFamily: "Inter, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
       }}
     >
+      <div style={{ fontWeight: 600, marginBottom: 8 }}>Mermaid diagram</div>
       <div
+        style={{
+          border: "1px solid #cbd5e1",
+          borderRadius: 8,
+          padding: 12,
+          background: "#fff",
+          marginBottom: 12,
+        }}
+      >
+        <Mermaid definition={definition} />
+      </div>
+      <pre
         style={{
           display: "flex",
           alignItems: "center",
