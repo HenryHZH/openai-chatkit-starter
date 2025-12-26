@@ -83,7 +83,6 @@ function ConfiguredChatKitPanel({
       : "pending"
   );
   const [widgetInstanceKey, setWidgetInstanceKey] = useState(0);
-  const [forceMermaidEnabled, setForceMermaidEnabled] = useState(false);
 
   const setErrorState = useCallback((updates: Partial<ErrorState>) => {
     setErrors((current) => ({ ...current, ...updates }));
@@ -346,18 +345,8 @@ function ConfiguredChatKitPanel({
 
   const triggerMermaidRender = useMermaidRenderer(widgetInstanceKey);
 
-  const handleToggleMermaid = useCallback(() => {
-    setForceMermaidEnabled((previous) => {
-      const next = !previous;
-      if (next) {
-        void triggerMermaidRender();
-      }
-      return next;
-    });
-  }, [triggerMermaidRender]);
-
   useEffect(() => {
-    if (!forceMermaidEnabled || !isBrowser) {
+    if (!isBrowser) {
       return undefined;
     }
 
@@ -369,7 +358,7 @@ function ConfiguredChatKitPanel({
     return () => {
       window.clearInterval(intervalId);
     };
-  }, [forceMermaidEnabled, triggerMermaidRender]);
+  }, [triggerMermaidRender]);
 
   useEffect(() => {
     if (!isBrowser) {
@@ -438,29 +427,11 @@ function ConfiguredChatKitPanel({
     <div className="relative pb-8 flex h-[90vh] w-full rounded-2xl flex-col overflow-hidden bg-white shadow-sm transition-colors dark:bg-slate-900">
       <div className="flex items-start justify-between gap-3 border-b border-slate-200/60 bg-white/80 px-4 py-3 text-slate-700 backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/70 dark:text-slate-200">
         <div className="space-y-1">
-          <p className="text-sm font-semibold">强制渲染 Mermaid</p>
+          <p className="text-sm font-semibold">Mermaid 渲染增强</p>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            开启后会在对话框外定期触发页面内的 Mermaid 渲染，避免遗漏。
+            系统会自动为对话内容循环触发 Mermaid 渲染，并在渲染失败时使用备用方案呈现更精细的图表。
           </p>
         </div>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={forceMermaidEnabled}
-          onClick={handleToggleMermaid}
-          className={`relative inline-flex h-8 w-14 items-center rounded-full border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 dark:focus:ring-indigo-500 ${
-            forceMermaidEnabled
-              ? "border-indigo-200 bg-indigo-500"
-              : "border-slate-200 bg-slate-200 dark:border-slate-700 dark:bg-slate-800"
-          }`}
-          aria-label="切换 Mermaid 强制渲染"
-        >
-          <span
-            className={`inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform duration-200 ${
-              forceMermaidEnabled ? "translate-x-6" : "translate-x-1"
-            }`}
-          />
-        </button>
       </div>
       <div className="relative flex-1 min-h-0">
         <ChatKit

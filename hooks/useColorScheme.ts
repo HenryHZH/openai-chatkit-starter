@@ -96,7 +96,11 @@ function applyDocumentScheme(scheme: ColorScheme): void {
   }
   const root = document.documentElement;
   root.dataset.colorScheme = scheme;
-  root.classList.toggle("dark", scheme === "dark");
+  if (scheme === "dark") {
+    root.classList.add("dark");
+  } else {
+    root.classList.remove("dark");
+  }
   root.style.colorScheme = scheme;
 }
 
