@@ -7,6 +7,22 @@ const MERMAID_CDN =
 
 const MAX_CODE_LENGTH = 20_000;
 
+const MERMAID_THEME_CONFIG = {
+  theme: "neutral",
+  themeVariables: {
+    background: "transparent",
+    fontFamily:
+      "'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+    primaryColor: "#4f46e5",
+    primaryBorderColor: "#4338ca",
+    primaryTextColor: "#0f172a",
+    lineColor: "#1e293b",
+    textColor: "#0f172a",
+    noteBkgColor: "#eef2ff",
+    noteBorderColor: "#c7d2fe",
+  },
+};
+
 export type MermaidAPI = {
   initialize: (config: { startOnLoad: boolean; securityLevel?: string }) => void;
   run?: (options: { nodes: Iterable<Element> }) => Promise<unknown> | unknown;
@@ -171,7 +187,11 @@ export const renderMermaidDefinition = async (
     return;
   }
 
-  mermaid.initialize({ startOnLoad: false, securityLevel: "strict" });
+  mermaid.initialize({
+    startOnLoad: false,
+    securityLevel: "strict",
+    ...MERMAID_THEME_CONFIG,
+  });
 
   try {
     const { svg, bindFunctions } = await mermaid.render(

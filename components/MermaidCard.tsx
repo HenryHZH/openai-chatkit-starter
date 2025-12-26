@@ -75,15 +75,45 @@ export function MermaidCard({ definition }: MermaidCardProps) {
     <div
       style={{
         border: "1px solid #e2e8f0",
-        borderRadius: 12,
-        padding: 12,
-        background: "#f8fafc",
+        borderRadius: 14,
+        padding: 14,
+        background:
+          "linear-gradient(145deg, rgba(79,70,229,0.08), rgba(14,165,233,0.08))",
         color: "#0f172a",
-        boxShadow: "0 4px 12px rgba(15, 23, 42, 0.08)",
+        boxShadow: "0 6px 18px rgba(15, 23, 42, 0.12)",
         fontFamily: "Inter, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
       }}
     >
-      <div style={{ fontWeight: 600, marginBottom: 8 }}>Mermaid diagram</div>
+      <div
+        style={{
+          fontWeight: 700,
+          marginBottom: 10,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          color: "#1e293b",
+          letterSpacing: 0.2,
+        }}
+      >
+        <span
+          aria-hidden
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 26,
+            height: 26,
+            borderRadius: 8,
+            background: "rgba(79,70,229,0.14)",
+            color: "#4338ca",
+            fontSize: 14,
+            fontWeight: 800,
+          }}
+        >
+          M
+        </span>
+        <span>Mermaid 开源渲染图</span>
+      </div>
       <div
         style={{
           border: "1px solid #cbd5e1",
@@ -98,14 +128,16 @@ export function MermaidCard({ definition }: MermaidCardProps) {
       <pre
         style={{
           whiteSpace: "pre-wrap",
-          background: "#0f172a",
+          background: "#0b1224",
           color: "#e2e8f0",
           padding: "10px 12px",
-          borderRadius: 8,
+          borderRadius: 10,
           overflowX: "auto",
           fontFamily: "SFMono-Regular, Consolas, \"Liberation Mono\", Menlo, monospace",
           fontSize: 13,
           margin: 0,
+          border: "1px solid #1f2937",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
         }}
       >
         <code>{`\`\`\`mermaid\n${definition.trim()}\n\`\`\``}</code>
