@@ -45,7 +45,27 @@ const createInitialErrors = (): ErrorState => ({
   retryable: false,
 });
 
-export function ChatKitPanel({
+export function ChatKitPanel(props: ChatKitPanelProps) {
+  const isWorkflowConfigured = Boolean(
+    WORKFLOW_ID && !WORKFLOW_ID.startsWith("wf_replace")
+  );
+
+  if (!isWorkflowConfigured) {
+    return (
+      <div className="relative pb-8 flex h-[90vh] w-full rounded-2xl flex-col overflow-hidden bg-white shadow-sm transition-colors dark:bg-slate-900">
+        <ErrorOverlay
+          error={null}
+          fallbackMessage="Set NEXT_PUBLIC_CHATKIT_WORKFLOW_ID in your environment to enable the assistant."
+          onRetry={null}
+        />
+      </div>
+    );
+  }
+
+  return <ConfiguredChatKitPanel {...props} />;
+}
+
+function ConfiguredChatKitPanel({
   theme,
   onWidgetAction,
   onResponseEnd,
@@ -133,20 +153,6 @@ export function ChatKitPanel({
     };
   }, [scriptStatus, setErrorState]);
 
-  const isWorkflowConfigured = Boolean(
-    WORKFLOW_ID && !WORKFLOW_ID.startsWith("wf_replace")
-  );
-
-  useEffect(() => {
-    if (!isWorkflowConfigured && isMountedRef.current) {
-      setErrorState({
-        session: "Set NEXT_PUBLIC_CHATKIT_WORKFLOW_ID in your .env.local file.",
-        retryable: false,
-      });
-      setIsInitializingSession(false);
-    }
-  }, [isWorkflowConfigured, setErrorState]);
-
   const handleResetChat = useCallback(() => {
     processedFacts.current.clear();
     if (isBrowser) {
@@ -167,16 +173,6 @@ export function ChatKitPanel({
           workflowId: WORKFLOW_ID,
           endpoint: CREATE_SESSION_ENDPOINT,
         });
-      }
-
-      if (!isWorkflowConfigured) {
-        const detail =
-          "Set NEXT_PUBLIC_CHATKIT_WORKFLOW_ID in your .env.local file.";
-        if (isMountedRef.current) {
-          setErrorState({ session: detail, retryable: false });
-          setIsInitializingSession(false);
-        }
-        throw new Error(detail);
       }
 
       if (isMountedRef.current) {
@@ -260,7 +256,7 @@ export function ChatKitPanel({
         }
       }
     },
-    [isWorkflowConfigured, setErrorState]
+    [setErrorState]
   );
 
   const themeConfig = useMemo(
