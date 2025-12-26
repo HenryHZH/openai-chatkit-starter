@@ -50,11 +50,27 @@ const MERMAID_DEFINITION_PATTERNS = [
   /^\s*xychart-beta\b/i,
 ];
 
-const ALL_CODE_SELECTOR = "pre code";
+const MERMAID_CODE_SELECTORS = [
+  "pre code",
+  "code[data-language]",
+  "code[data-lang]",
+  "code[class*=\"language-\"]",
+  "[data-code-block-language]",
+  "[data-code-language]",
+  "[data-lexical-editor][data-language]",
+  "[data-lexical-editor][data-lang]",
+  ".mermaid",
+  ".language-mermaid",
+  ".lang-mermaid",
+];
 
 const getCodeLanguage = (block: HTMLElement) => {
   const dataLanguage =
-    (block.dataset.language ?? block.dataset.lang ?? "").toLowerCase();
+    (block.dataset.codeBlockLanguage ??
+      block.dataset.codeLanguage ??
+      block.dataset.language ??
+      block.dataset.lang ??
+      "").toLowerCase();
   if (dataLanguage) return dataLanguage;
 
   const classNames = block.className ?? "";
@@ -65,6 +81,11 @@ const getCodeLanguage = (block: HTMLElement) => {
 
   return "";
 };
+
+const resolveMermaidContainer = (block: HTMLElement) =>
+  block.closest<HTMLElement>(
+    "pre, [data-code-block-language], [data-code-language], [data-language], [data-lang], .mermaid, code"
+  ) ?? block;
 
 const isMermaidLanguage = (language: string) =>
   MERMAID_LANGUAGE_HINTS.has(language.toLowerCase());
@@ -123,15 +144,23 @@ export function useMermaidRenderer(resetKey?: unknown) {
       const searchableRoots = collectShadowRoots(root);
 
       const codeBlocks = searchableRoots.flatMap((domRoot) =>
-        Array.from(domRoot.querySelectorAll<HTMLElement>(ALL_CODE_SELECTOR))
+        MERMAID_CODE_SELECTORS.flatMap((selector) =>
+          Array.from(domRoot.querySelectorAll<HTMLElement>(selector))
+        )
       );
+
+      const visited = new Set<HTMLElement>();
       codeBlocks.forEach((block) => {
-        const container = block.closest<HTMLElement>("pre");
-        if (!container || container.dataset.mermaidProcessed === "true") {
+        if (visited.has(block)) return;
+        visited.add(block);
+
+        const container = resolveMermaidContainer(block);
+        if (container.dataset.mermaidProcessed === "true") {
           return;
         }
 
-        const definition = block.textContent?.trim() ?? "";
+        const definition =
+          (block.textContent ?? container.textContent ?? "").trim();
         const language = getCodeLanguage(block);
 
         if (!definition) return;
