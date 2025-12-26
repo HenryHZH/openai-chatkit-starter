@@ -83,6 +83,7 @@ function ConfiguredChatKitPanel({
       : "pending"
   );
   const [widgetInstanceKey, setWidgetInstanceKey] = useState(0);
+  const [forceMermaidEnabled, setForceMermaidEnabled] = useState(false);
 
   const setErrorState = useCallback((updates: Partial<ErrorState>) => {
     setErrors((current) => ({ ...current, ...updates }));
@@ -345,6 +346,31 @@ function ConfiguredChatKitPanel({
 
   const triggerMermaidRender = useMermaidRenderer(widgetInstanceKey);
 
+  const handleToggleMermaid = useCallback(() => {
+    setForceMermaidEnabled((previous) => {
+      const next = !previous;
+      if (next) {
+        void triggerMermaidRender();
+      }
+      return next;
+    });
+  }, [triggerMermaidRender]);
+
+  useEffect(() => {
+    if (!forceMermaidEnabled || !isBrowser) {
+      return undefined;
+    }
+
+    void triggerMermaidRender();
+    const intervalId = window.setInterval(() => {
+      void triggerMermaidRender();
+    }, 1500);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [forceMermaidEnabled, triggerMermaidRender]);
+
   useEffect(() => {
     if (!isBrowser) {
       return;
@@ -410,25 +436,53 @@ function ConfiguredChatKitPanel({
 
   return (
     <div className="relative pb-8 flex h-[90vh] w-full rounded-2xl flex-col overflow-hidden bg-white shadow-sm transition-colors dark:bg-slate-900">
-      <ChatKit
-        key={widgetInstanceKey}
-        control={chatkit.control}
-        className={
-          blockingError || isInitializingSession
-            ? "pointer-events-none opacity-0"
-            : "block h-full w-full"
-        }
-      />
-      <ErrorOverlay
-        error={blockingError}
-        fallbackMessage={
-          blockingError || !isInitializingSession
-            ? null
-            : "Loading assistant session..."
-        }
-        onRetry={blockingError && errors.retryable ? handleResetChat : null}
-        retryLabel="Restart chat"
-      />
+      <div className="flex items-start justify-between gap-3 border-b border-slate-200/60 bg-white/80 px-4 py-3 text-slate-700 backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/70 dark:text-slate-200">
+        <div className="space-y-1">
+          <p className="text-sm font-semibold">强制渲染 Mermaid</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            开启后会在对话框外定期触发页面内的 Mermaid 渲染，避免遗漏。
+          </p>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={forceMermaidEnabled}
+          onClick={handleToggleMermaid}
+          className={`relative inline-flex h-8 w-14 items-center rounded-full border transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 dark:focus:ring-indigo-500 ${
+            forceMermaidEnabled
+              ? "border-indigo-200 bg-indigo-500"
+              : "border-slate-200 bg-slate-200 dark:border-slate-700 dark:bg-slate-800"
+          }`}
+          aria-label="切换 Mermaid 强制渲染"
+        >
+          <span
+            className={`inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform duration-200 ${
+              forceMermaidEnabled ? "translate-x-6" : "translate-x-1"
+            }`}
+          />
+        </button>
+      </div>
+      <div className="relative flex-1 min-h-0">
+        <ChatKit
+          key={widgetInstanceKey}
+          control={chatkit.control}
+          className={
+            blockingError || isInitializingSession
+              ? "pointer-events-none opacity-0"
+              : "block h-full w-full"
+          }
+        />
+        <ErrorOverlay
+          error={blockingError}
+          fallbackMessage={
+            blockingError || !isInitializingSession
+              ? null
+              : "Loading assistant session..."
+          }
+          onRetry={blockingError && errors.retryable ? handleResetChat : null}
+          retryLabel="Restart chat"
+        />
+      </div>
     </div>
   );
 }
