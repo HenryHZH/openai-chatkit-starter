@@ -18,6 +18,7 @@ export function Mermaid({ definition }: MermaidProps) {
     const host = containerRef.current;
     if (!host || !definition.trim()) return;
 
+    host.innerHTML = "";
     host.dataset.mermaidDefinition = definition;
     void renderMermaidDefinition(host, definition, renderId);
   }, [definition, renderId]);

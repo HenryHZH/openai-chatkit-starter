@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent,
+  type WheelEvent,
+} from "react";
 import useMermaidSourceSync from "@/hooks/useMermaidSourceSync";
 import { Mermaid } from "./Mermaid";
 
@@ -8,7 +15,13 @@ export function MermaidRendererPanel() {
   const [input, setInput] = useState("");
   const [isUserEditing, setIsUserEditing] = useState(false);
   const [zoom, setZoom] = useState(1);
-  const [review, setReview] = useState("");
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [autoCopyState, setAutoCopyState] = useState<
+    "idle" | "copying" | "copied" | "failed"
+  >("idle");
+  const panRef = useRef(pan);
+  const lastPointerRef = useRef<{ x: number; y: number } | null>(null);
+  const renderAreaRef = useRef<HTMLDivElement | null>(null);
   const syncedDefinition = useMermaidSourceSync();
 
   useEffect(() => {
@@ -36,11 +49,97 @@ export function MermaidRendererPanel() {
   };
 
   const handleZoomChange = (value: number) => {
-    setZoom(Math.min(2, Math.max(0.5, value)));
+    const clamped = Math.min(2, Math.max(0.5, value));
+    setZoom(clamped);
   };
 
   const handleResetZoom = () => {
     setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
+
+  useEffect(() => {
+    panRef.current = pan;
+  }, [pan]);
+
+  useEffect(() => {
+    if (!definition) return;
+    if (typeof navigator === "undefined" || !navigator.clipboard) return;
+
+    let cancelled = false;
+    const snippet = `\`\`\`mermaid\n${definition}\n\`\`\``;
+
+    const copy = async () => {
+      setAutoCopyState("copying");
+      try {
+        await navigator.clipboard.writeText(snippet);
+        if (!cancelled) {
+          setAutoCopyState("copied");
+          setTimeout(() => {
+            setAutoCopyState((current) =>
+              current === "copied" ? "idle" : current
+            );
+          }, 1500);
+        }
+      } catch (error) {
+        console.error("Auto copy failed", error);
+        if (!cancelled) setAutoCopyState("failed");
+      }
+    };
+
+    void copy();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [definition]);
+
+  const handleWheelZoom = (event: WheelEvent<HTMLDivElement>) => {
+    if (!definition) return;
+    if (!event.ctrlKey && !event.metaKey) return;
+
+    event.preventDefault();
+
+    const delta = event.deltaY;
+    const scaleStep = delta > 0 ? -0.08 : 0.08;
+    const nextZoom = Math.min(2, Math.max(0.5, zoom + scaleStep));
+
+    const host = renderAreaRef.current;
+    if (host) {
+      const rect = host.getBoundingClientRect();
+      const offsetX = event.clientX - rect.left;
+      const offsetY = event.clientY - rect.top;
+      const zoomFactor = nextZoom / zoom;
+
+      setPan((current) => ({
+        x: current.x - offsetX * (zoomFactor - 1),
+        y: current.y - offsetY * (zoomFactor - 1),
+      }));
+    }
+
+    setZoom(nextZoom);
+  };
+
+  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (!definition || event.button !== 0) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    lastPointerRef.current = { x: event.clientX, y: event.clientY };
+  };
+
+  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (!lastPointerRef.current) return;
+    const deltaX = event.clientX - lastPointerRef.current.x;
+    const deltaY = event.clientY - lastPointerRef.current.y;
+    lastPointerRef.current = { x: event.clientX, y: event.clientY };
+
+    setPan((current) => ({ x: current.x + deltaX, y: current.y + deltaY }));
+  };
+
+  const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.pointerId) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    lastPointerRef.current = null;
   };
 
   return (
@@ -141,46 +240,51 @@ export function MermaidRendererPanel() {
               </div>
             </div>
             <div className="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-950">
-              <div className="overflow-auto rounded-lg border border-slate-100/80 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-900/60">
+              <div
+                ref={renderAreaRef}
+                className="overflow-auto rounded-lg border border-slate-100/80 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-900/60"
+                onWheel={handleWheelZoom}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerUp}
+                onPointerLeave={handlePointerUp}
+                style={{ touchAction: "none" }}
+              >
                 <div
-                  className="inline-block"
+                  className="inline-block cursor-grab"
                   style={{
-                    transform: `scale(${zoom})`,
+                    transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
                     transformOrigin: "top left",
                   }}
                 >
                   <Mermaid definition={definition} />
                 </div>
               </div>
+              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                在触控板捏合或使用鼠标滚轮 + Ctrl/⌘ 进行缩放，拖动图表即可平移。
+              </p>
             </div>
             <div className="rounded-xl bg-slate-900 px-3 py-2 text-xs text-slate-100 shadow-sm">
-              <code>{`\`\`\`mermaid\n${definition}\n\`\`\``}</code>
-            </div>
-            <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-950">
-              <div className="flex items-center justify-between gap-2 text-sm font-semibold text-slate-700 dark:text-slate-100">
-                <span>评议</span>
-                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                  {review.length}/200
-                </span>
-              </div>
-              <textarea
-                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 shadow-inner focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-100 dark:focus:border-indigo-500 dark:focus:ring-indigo-500/40"
-                maxLength={200}
-                placeholder="输入对图表的评议、优化建议或质量反馈..."
-                value={review}
-                onChange={(event) => setReview(event.target.value)}
-              />
-              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                <span>可以将评议复制回对话，帮助改进图表。</span>
+              <div className="flex items-center justify-between gap-2">
+                <code className="break-all">{`\`\`\`mermaid\n${definition}\n\`\`\``}</code>
                 <button
                   type="button"
-                  className="rounded-lg bg-slate-900 px-3 py-1 text-[12px] font-semibold text-slate-100 shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:bg-slate-800 dark:hover:bg-slate-700 dark:focus:ring-indigo-500/40"
-                  onClick={() => navigator.clipboard.writeText(review)}
-                  disabled={!review.trim()}
+                  className="rounded-lg border border-slate-700 px-2 py-1 text-[11px] font-semibold text-indigo-100 transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400/70"
+                  onClick={() => navigator.clipboard.writeText(`\`\`\`mermaid\n${definition}\n\`\`\``)}
                 >
-                  复制评议
+                  {autoCopyState === "copied" ? "已复制" : "复制"}
                 </button>
               </div>
+              <p className="mt-1 text-[11px] text-slate-400" aria-live="polite">
+                {autoCopyState === "copying"
+                  ? "正在自动复制到剪贴板..."
+                  : autoCopyState === "copied"
+                    ? "已自动复制，点击按钮可再次复制。"
+                    : autoCopyState === "failed"
+                      ? "自动复制未成功，请点击右侧按钮手动复制。"
+                      : "检测到图表后会自动复制 Markdown 代码。"}
+              </p>
             </div>
           </div>
         ) : (
