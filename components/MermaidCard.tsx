@@ -2,90 +2,29 @@
 
 import type { CSSProperties } from "react";
 import { useCallback, useEffect, useState } from "react";
+import { buildMermaidInkUrl, encodeMermaidState } from "@/hooks/mermaidUtils";
 import { Mermaid } from "./Mermaid";
 
 type MermaidCardProps = {
   definition: string;
 };
 
-const MAX_CODE_LENGTH = 20_000;
-
-const toBase64Url = (bytes: Uint8Array) => {
-  let binary = "";
-  const chunkSize = 0x8000;
-
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
-  }
-
-  return btoa(binary)
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/g, "");
-};
-
-const compressWithStream = async (input: string) => {
-  if (typeof CompressionStream === "undefined") {
-    return null;
-  }
-
-  const encoder = new TextEncoder();
-  const stream = new CompressionStream("deflate");
-  const writer = stream.writable.getWriter();
-  await writer.write(encoder.encode(input));
-  await writer.close();
-
-  const reader = stream.readable.getReader();
-  const chunks: Uint8Array[] = [];
-  let done = false;
-  while (!done) {
-    const result = await reader.read();
-    done = result.done ?? false;
-    if (result.value) {
-      chunks.push(result.value);
-    }
-  }
-
-  const totalLength = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
-  const output = new Uint8Array(totalLength);
-  let offset = 0;
-  for (const chunk of chunks) {
-    output.set(chunk, offset);
-    offset += chunk.length;
-  }
-
-  return output;
-};
-
-const encodeMermaidState = async (code: string) => {
-  const trimmed = code.trim();
-
-  if (!trimmed || trimmed.length > MAX_CODE_LENGTH) {
-    return null;
-  }
-
-  try {
-    const state = { code: trimmed, mermaid: { theme: "default" } };
-    const compressed = await compressWithStream(JSON.stringify(state));
-    if (!compressed) return null;
-    return toBase64Url(compressed);
-  } catch (error) {
-    console.error("Failed to encode Mermaid payload", error);
-    return null;
-  }
-};
-
 export function MermaidCard({ definition }: MermaidCardProps) {
   const [copied, setCopied] = useState(false);
   const [encodedState, setEncodedState] = useState<string | null>(null);
+  const [inkUrl, setInkUrl] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
     const encode = async () => {
-      const encoded = await encodeMermaidState(definition);
+      const [encoded, ink] = await Promise.all([
+        encodeMermaidState(definition),
+        buildMermaidInkUrl(definition),
+      ]);
       if (!cancelled) {
         setEncodedState(encoded);
+        setInkUrl(ink);
       }
     };
 
@@ -99,7 +38,6 @@ export function MermaidCard({ definition }: MermaidCardProps) {
   const liveUrl = encodedState
     ? `https://mermaid.live/edit#pako:${encodedState}`
     : "https://mermaid.live/edit";
-  const inkUrl = encodedState ? `https://mermaid.ink/svg/pako:${encodedState}` : null;
 
   const handleCopy = useCallback(async () => {
     const payload = definition.trim();
