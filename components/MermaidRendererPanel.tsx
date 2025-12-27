@@ -16,9 +16,6 @@ export function MermaidRendererPanel() {
   const [isUserEditing, setIsUserEditing] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [autoCopyState, setAutoCopyState] = useState<
-    "idle" | "copying" | "copied" | "failed"
-  >("idle");
   const panRef = useRef(pan);
   const lastPointerRef = useRef<{ x: number; y: number } | null>(null);
   const renderAreaRef = useRef<HTMLDivElement | null>(null);
@@ -49,7 +46,7 @@ export function MermaidRendererPanel() {
   };
 
   const handleZoomChange = (value: number) => {
-    const clamped = Math.min(2, Math.max(0.5, value));
+    const clamped = Math.min(5, Math.max(1, value));
     setZoom(clamped);
   };
 
@@ -62,38 +59,6 @@ export function MermaidRendererPanel() {
     panRef.current = pan;
   }, [pan]);
 
-  useEffect(() => {
-    if (!definition) return;
-    if (typeof navigator === "undefined" || !navigator.clipboard) return;
-
-    let cancelled = false;
-    const snippet = `\`\`\`mermaid\n${definition}\n\`\`\``;
-
-    const copy = async () => {
-      setAutoCopyState("copying");
-      try {
-        await navigator.clipboard.writeText(snippet);
-        if (!cancelled) {
-          setAutoCopyState("copied");
-          setTimeout(() => {
-            setAutoCopyState((current) =>
-              current === "copied" ? "idle" : current
-            );
-          }, 1500);
-        }
-      } catch (error) {
-        console.error("Auto copy failed", error);
-        if (!cancelled) setAutoCopyState("failed");
-      }
-    };
-
-    void copy();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [definition]);
-
   const handleWheelZoom = (event: WheelEvent<HTMLDivElement>) => {
     if (!definition) return;
     if (!event.ctrlKey && !event.metaKey) return;
@@ -102,7 +67,7 @@ export function MermaidRendererPanel() {
 
     const delta = event.deltaY;
     const scaleStep = delta > 0 ? -0.08 : 0.08;
-    const nextZoom = Math.min(2, Math.max(0.5, zoom + scaleStep));
+    const nextZoom = Math.min(5, Math.max(1, zoom + scaleStep));
 
     const host = renderAreaRef.current;
     if (host) {
@@ -204,8 +169,8 @@ export function MermaidRendererPanel() {
                 <input
                   aria-label="预览缩放"
                   type="range"
-                  min={50}
-                  max={200}
+                  min={100}
+                  max={500}
                   step={10}
                   value={Math.round(zoom * 100)}
                   onChange={(event) => handleZoomChange(Number(event.target.value) / 100)}
@@ -273,17 +238,11 @@ export function MermaidRendererPanel() {
                   className="rounded-lg border border-slate-700 px-2 py-1 text-[11px] font-semibold text-indigo-100 transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400/70"
                   onClick={() => navigator.clipboard.writeText(`\`\`\`mermaid\n${definition}\n\`\`\``)}
                 >
-                  {autoCopyState === "copied" ? "已复制" : "复制"}
+                  复制
                 </button>
               </div>
               <p className="mt-1 text-[11px] text-slate-400" aria-live="polite">
-                {autoCopyState === "copying"
-                  ? "正在自动复制到剪贴板..."
-                  : autoCopyState === "copied"
-                    ? "已自动复制，点击按钮可再次复制。"
-                    : autoCopyState === "failed"
-                      ? "自动复制未成功，请点击右侧按钮手动复制。"
-                      : "检测到图表后会自动复制 Markdown 代码。"}
+                点击右侧按钮手动复制 Markdown 代码。
               </p>
             </div>
           </div>
