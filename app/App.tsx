@@ -27,7 +27,7 @@ export default function App() {
       <div className="pointer-events-none absolute bottom-[-10%] right-[-10%] z-0 h-80 w-80 rounded-full bg-gradient-to-tr from-sky-400/20 via-indigo-400/10 to-transparent blur-3xl animated-orb-delay" />
       <div className="pointer-events-none absolute left-10 top-1/3 z-0 h-28 w-28 rounded-full bg-gradient-to-br from-indigo-300/20 via-sky-300/20 to-transparent blur-3xl drift-wave" />
 
-      <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-10 px-6 py-14 md:px-10">
+      <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-10 px-6 py-14 md:px-10">
         <header className="max-w-3xl space-y-4">
           <span className="inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm ring-1 ring-slate-200/60 backdrop-blur dark:bg-slate-900/70 dark:text-slate-300 dark:ring-slate-800/60">
             AI 案例助手
@@ -49,19 +49,21 @@ export default function App() {
           </div>
         </section>
 
-        <div className="relative rounded-3xl border border-white/70 bg-white/70 p-2 shadow-2xl backdrop-blur-xl ring-1 ring-slate-200/70 dark:border-slate-800/60 dark:bg-slate-900/70 dark:ring-slate-800/80">
-          <div className="absolute inset-x-10 top-0 h-24 rounded-full bg-gradient-to-b from-slate-100/60 via-white/0 to-white/0 blur-2xl dark:from-slate-800/50" />
-          <div className="relative rounded-2xl bg-gradient-to-br from-white/90 to-slate-100/70 p-4 shadow-inner dark:from-slate-900/80 dark:to-slate-950/60">
-            <ChatKitPanel
-              theme={scheme}
-              onWidgetAction={handleWidgetAction}
-              onResponseEnd={handleResponseEnd}
-              onThemeRequest={setScheme}
-            />
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.05fr_1.15fr]">
+          <MermaidPlayground scheme={scheme} />
+
+          <div className="relative rounded-3xl border border-white/70 bg-white/70 p-2 shadow-2xl backdrop-blur-xl ring-1 ring-slate-200/70 dark:border-slate-800/60 dark:bg-slate-900/70 dark:ring-slate-800/80">
+            <div className="absolute inset-x-10 top-0 h-24 rounded-full bg-gradient-to-b from-slate-100/60 via-white/0 to-white/0 blur-2xl dark:from-slate-800/50" />
+            <div className="relative rounded-2xl bg-gradient-to-br from-white/90 to-slate-100/70 p-4 shadow-inner dark:from-slate-900/80 dark:to-slate-950/60">
+              <ChatKitPanel
+                theme={scheme}
+                onWidgetAction={handleWidgetAction}
+                onResponseEnd={handleResponseEnd}
+                onThemeRequest={setScheme}
+              />
+            </div>
           </div>
         </div>
-
-        <MermaidPlayground scheme={scheme} />
 
       </div>
     </main>
