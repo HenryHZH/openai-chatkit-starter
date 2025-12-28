@@ -230,21 +230,6 @@ export function MermaidRendererPanel() {
                 在触控板捏合或使用鼠标滚轮 + Ctrl/⌘ 进行缩放，拖动图表即可平移。
               </p>
             </div>
-            <div className="rounded-xl bg-slate-900 px-3 py-2 text-xs text-slate-100 shadow-sm">
-              <div className="flex items-center justify-between gap-2">
-                <code className="break-all">{`\`\`\`mermaid\n${definition}\n\`\`\``}</code>
-                <button
-                  type="button"
-                  className="rounded-lg border border-slate-700 px-2 py-1 text-[11px] font-semibold text-indigo-100 transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400/70"
-                  onClick={() => navigator.clipboard.writeText(`\`\`\`mermaid\n${definition}\n\`\`\``)}
-                >
-                  复制
-                </button>
-              </div>
-              <p className="mt-1 text-[11px] text-slate-400" aria-live="polite">
-                点击右侧按钮手动复制 Markdown 代码。
-              </p>
-            </div>
           </div>
         ) : (
           <p className="text-sm text-slate-600 dark:text-slate-300">
