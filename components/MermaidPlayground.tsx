@@ -63,7 +63,7 @@ type MermaidPlaygroundProps = {
 export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
   const [inputCode, setInputCode] = useState("");
   const [clipboardCode, setClipboardCode] = useState("");
-  const [isInputCollapsed, setIsInputCollapsed] = useState(false);
+  const [isInputCollapsed, setIsInputCollapsed] = useState(true);
   const [zoom, setZoom] = useState(100);
   const [error, setError] = useState<string | null>(null);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
@@ -259,14 +259,9 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
       <div className="pointer-events-none absolute inset-x-0 top-0 h-24 rounded-full bg-gradient-to-b from-slate-100/70 via-white/0 to-white/0 blur-2xl dark:from-slate-800/60" />
       <div className="relative space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
-              Mermaid 实时渲染器
-            </p>
-            <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-50">
-              随输入实时预览图形
-            </h2>
-          </div>
+          <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-50">
+            可视化图表
+          </h2>
           {clipboardCode && !inputCode ? (
             <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-900/60 dark:text-emerald-100 dark:ring-emerald-800/80">
               检测到剪贴板 Mermaid 内容
@@ -292,7 +287,9 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
             {!isInputCollapsed ? (
               <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-inner ring-1 ring-slate-200/70 dark:border-slate-800 dark:bg-slate-900 dark:ring-slate-800/80">
                 <textarea
-                  className="h-32 w-full resize-none bg-transparent px-4 py-3 font-mono text-sm text-slate-800 outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:text-slate-100"
+                  className="w-full resize-none bg-transparent px-4 py-3 font-mono text-sm text-slate-800 outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:text-slate-100"
+                  rows={2}
+                  style={{ maxHeight: "5.5rem" }}
                   value={inputCode}
                   onChange={(event) => setInputCode(event.target.value)}
                   spellCheck={false}

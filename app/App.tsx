@@ -27,7 +27,7 @@ export default function App() {
       <div className="pointer-events-none absolute bottom-[-10%] right-[-10%] z-0 h-80 w-80 rounded-full bg-gradient-to-tr from-sky-400/20 via-indigo-400/10 to-transparent blur-3xl animated-orb-delay" />
       <div className="pointer-events-none absolute left-10 top-1/3 z-0 h-28 w-28 rounded-full bg-gradient-to-br from-indigo-300/20 via-sky-300/20 to-transparent blur-3xl drift-wave" />
 
-      <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-10 px-6 py-14 md:px-10">
+      <div className="relative mx-auto flex min-h-screen w-full max-w-screen-2xl flex-col gap-10 px-6 py-14 md:px-10">
         <header className="max-w-3xl space-y-4">
           <span className="inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm ring-1 ring-slate-200/60 backdrop-blur dark:bg-slate-900/70 dark:text-slate-300 dark:ring-slate-800/60">
             AI 案例助手
