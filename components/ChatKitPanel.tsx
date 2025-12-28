@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { OpenAIChatKit } from "@openai/chatkit";
 import { ChatKit, useChatKit } from "@openai/chatkit-react";
 import {
   STARTER_PROMPTS,
@@ -13,7 +12,6 @@ import {
 } from "@/lib/config";
 import { ErrorOverlay } from "./ErrorOverlay";
 import type { ColorScheme } from "@/hooks/useColorScheme";
-import { useMermaidRenderer } from "@/hooks/useMermaidRenderer";
 
 export type FactAction = {
   type: "save";
@@ -343,73 +341,6 @@ function ConfiguredChatKitPanel({
     },
   });
 
-  const triggerMermaidRender = useMermaidRenderer(widgetInstanceKey);
-
-  useEffect(() => {
-    if (!isBrowser) {
-      return undefined;
-    }
-
-    void triggerMermaidRender();
-    const intervalId = window.setInterval(() => {
-      void triggerMermaidRender();
-    }, 1500);
-
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, [triggerMermaidRender]);
-
-  useEffect(() => {
-    if (!isBrowser) {
-      return;
-    }
-
-    let currentInstance: OpenAIChatKit | null = null;
-    let cleanupListeners: (() => void) | null = null;
-    const attachListeners = () => {
-      const instance = chatkit.ref.current;
-      if (!instance || instance === currentInstance) {
-        return;
-      }
-
-      currentInstance = instance;
-      cleanupListeners?.();
-
-      const events: string[] = [
-        "chatkit.response.start",
-        "chatkit.response.end",
-        "chatkit.thread.change",
-        "chatkit.thread.load.end",
-        "chatkit.log",
-      ];
-
-      const handleRender = () => {
-        void triggerMermaidRender();
-      };
-
-      events.forEach((eventName) =>
-        instance.addEventListener(eventName, handleRender)
-      );
-
-      cleanupListeners = () => {
-        events.forEach((eventName) =>
-          instance.removeEventListener(eventName, handleRender)
-        );
-      };
-
-      void triggerMermaidRender();
-    };
-
-    const pollId = window.setInterval(attachListeners, 250);
-    attachListeners();
-
-    return () => {
-      window.clearInterval(pollId);
-      cleanupListeners?.();
-    };
-  }, [chatkit.ref, triggerMermaidRender, widgetInstanceKey]);
-
   const activeError = errors.session ?? errors.integration;
   const blockingError = errors.script ?? activeError;
 
@@ -427,9 +358,9 @@ function ConfiguredChatKitPanel({
     <div className="relative pb-8 flex h-[90vh] w-full rounded-2xl flex-col overflow-hidden bg-white shadow-sm transition-colors dark:bg-slate-900">
       <div className="flex items-start justify-between gap-3 border-b border-slate-200/60 bg-white/80 px-4 py-3 text-slate-700 backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/70 dark:text-slate-200">
         <div className="space-y-1">
-          <p className="text-sm font-semibold">Mermaid 渲染增强</p>
+          <p className="text-sm font-semibold">智能对话</p>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            系统会自动为对话内容循环触发 Mermaid 渲染，并在渲染失败时使用备用方案呈现更精细的图表。
+            与助手交流并上传材料，系统会自动根据配置的工作流提供回复。
           </p>
         </div>
       </div>

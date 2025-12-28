@@ -13,36 +13,32 @@ import { Mermaid } from "./Mermaid";
 
 export function MermaidRendererPanel() {
   const [input, setInput] = useState("");
-  const [isUserEditing, setIsUserEditing] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const panRef = useRef(pan);
   const lastPointerRef = useRef<{ x: number; y: number } | null>(null);
   const renderAreaRef = useRef<HTMLDivElement | null>(null);
-  const syncedDefinition = useMermaidSourceSync();
-
-  useEffect(() => {
-    if (!syncedDefinition) return;
-
-    setInput((current) => {
-      if (current.trim() || isUserEditing) {
-        return current;
-      }
-      return syncedDefinition;
-    });
-  }, [isUserEditing, syncedDefinition]);
+  const { definition: syncedDefinition, syncFromChat } = useMermaidSourceSync();
+  const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
 
   const definition = useMemo(() => input.trim(), [input]);
 
   const handleInputChange = (value: string) => {
     setInput(value);
-    setIsUserEditing(true);
+  };
+
+  const handleSyncFromChat = () => {
+    const detected = syncFromChat();
+    if (detected) {
+      setSyncFeedback("已从对话中抓取到 Mermaid 代码，点击按钮即可填充。");
+    } else {
+      setSyncFeedback("未在当前对话中找到 Mermaid 代码，请手动粘贴。");
+    }
   };
 
   const handleApplySynced = () => {
     if (!syncedDefinition) return;
     setInput(syncedDefinition);
-    setIsUserEditing(false);
   };
 
   const handleZoomChange = (value: number) => {
@@ -113,7 +109,7 @@ export function MermaidRendererPanel() {
         <div>
           <p className="text-sm font-semibold">Mermaid 渲染器</p>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            自动捕捉对话中的 Mermaid 代码，并提供缩放、评议与复制能力。
+            手动抓取对话中的 Mermaid 代码，或直接粘贴到文本框中进行渲染。
           </p>
         </div>
         <span className="text-xs text-slate-500 transition group-open:hidden dark:text-slate-400">
@@ -125,31 +121,38 @@ export function MermaidRendererPanel() {
       </summary>
 
       <div className="space-y-4 border-t border-slate-200/60 px-4 pb-4 pt-3 dark:border-slate-800/60">
-        <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-          Mermaid 源码
-        </label>
-        {syncedDefinition ? (
-          <div className="flex flex-col gap-2 rounded-xl bg-indigo-50/70 px-3 py-2 text-xs text-indigo-700 ring-1 ring-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-100 dark:ring-indigo-800/60 sm:flex-row sm:items-center sm:justify-between">
-            <span>
-              已自动检测到对话中的第一个 Mermaid 图表，点击即可一键填充。
-            </span>
-            <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+            Mermaid 源码
+          </label>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+            <button
+              type="button"
+              className="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1 font-semibold text-indigo-700 transition hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:border-indigo-800/60 dark:bg-indigo-900/30 dark:text-indigo-100 dark:hover:bg-indigo-900/60"
+              onClick={handleSyncFromChat}
+            >
+              从对话抓取
+            </button>
+            {syncedDefinition ? (
               <button
                 type="button"
-                className="rounded-lg bg-indigo-600 px-3 py-1 text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:bg-indigo-500 dark:hover:bg-indigo-400"
+                className="rounded-lg bg-indigo-600 px-3 py-1 font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:bg-indigo-500 dark:hover:bg-indigo-400"
                 onClick={handleApplySynced}
               >
-                使用检测到的图表
+                使用抓取结果
               </button>
-              <button
-                type="button"
-                className="rounded-lg px-3 py-1 text-indigo-700 transition hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:text-indigo-100 dark:hover:bg-indigo-800/60 dark:focus:ring-indigo-500/40"
-                onClick={handleResetZoom}
-              >
-                重置缩放
-              </button>
-            </div>
+            ) : null}
+            <button
+              type="button"
+              className="rounded-lg px-3 py-1 font-semibold text-indigo-700 transition hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:text-indigo-100 dark:hover:bg-indigo-800/60 dark:focus:ring-indigo-500/40"
+              onClick={handleResetZoom}
+            >
+              重置缩放
+            </button>
           </div>
+        </div>
+        {syncFeedback ? (
+          <p className="text-xs text-slate-500 dark:text-slate-400">{syncFeedback}</p>
         ) : null}
         <textarea
           className="min-h-[160px] w-full resize-y rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-sm text-slate-800 shadow-inner focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100 dark:focus:border-indigo-500 dark:focus:ring-indigo-500/40"
