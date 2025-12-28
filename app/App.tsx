@@ -3,6 +3,7 @@
 import { useCallback } from "react";
 import { BouncingBalls } from "@/components/BouncingBalls";
 import { ChatKitPanel, type FactAction } from "@/components/ChatKitPanel";
+import { MermaidPlayground } from "@/components/MermaidPlayground";
 import { useColorScheme } from "@/hooks/useColorScheme";
 
 export default function App() {
@@ -59,6 +60,8 @@ export default function App() {
             />
           </div>
         </div>
+
+        <MermaidPlayground scheme={scheme} />
 
       </div>
     </main>
