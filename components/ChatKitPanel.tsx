@@ -8,6 +8,7 @@ import {
   GREETING,
   CREATE_SESSION_ENDPOINT,
   WORKFLOW_ID,
+  CHATKIT_SCRIPT_URL,
   getThemeConfig,
 } from "@/lib/config";
 import { ErrorOverlay } from "./ErrorOverlay";
@@ -26,6 +27,8 @@ type ChatKitPanelProps = {
   onThemeRequest: (scheme: ColorScheme) => void;
 };
 
+type ScriptStatus = "idle" | "loading" | "ready" | "error";
+
 type ErrorState = {
   script: string | null;
   session: string | null;
@@ -35,9 +38,6 @@ type ErrorState = {
 
 const isBrowser = typeof window !== "undefined";
 const isDev = process.env.NODE_ENV !== "production";
-const CHATKIT_SCRIPT_URL =
-  "https://cdn.platform.openai.com/deployments/chatkit/chatkit.js";
-
 const createInitialErrors = (): ErrorState => ({
   script: null,
   session: null,
@@ -75,14 +75,12 @@ function ConfiguredChatKitPanel({
   const [errors, setErrors] = useState<ErrorState>(() => createInitialErrors());
   const [isInitializingSession, setIsInitializingSession] = useState(true);
   const isMountedRef = useRef(true);
-  const [scriptStatus, setScriptStatus] = useState<
-    "pending" | "ready" | "error"
-  >(() =>
-    isBrowser && window.customElements?.get("openai-chatkit")
-      ? "ready"
-      : "pending"
-  );
   const [widgetInstanceKey, setWidgetInstanceKey] = useState(0);
+  const {
+    status: scriptStatus,
+    error: scriptError,
+    retry: retryScript,
+  } = useChatKitScriptLoader(CHATKIT_SCRIPT_URL);
 
   const setErrorState = useCallback((updates: Partial<ErrorState>) => {
     setErrors((current) => ({ ...current, ...updates }));
@@ -95,114 +93,25 @@ function ConfiguredChatKitPanel({
   }, []);
 
   useEffect(() => {
-    if (!isBrowser) {
+    if (!isMountedRef.current) return;
+    if (scriptStatus === "error") {
+      setIsInitializingSession(false);
+      setErrorState({ script: scriptError ?? "", retryable: true });
       return;
     }
 
-    let timeoutId: number | undefined;
-    let scriptEl: HTMLScriptElement | null = null;
-
-    const handleLoaded = () => {
-      if (!isMountedRef.current) {
-        return;
-      }
-      setScriptStatus("ready");
-      setErrorState({ script: null });
-    };
-
-    const handleError = (event: Event) => {
-      console.error("Failed to load chatkit.js for some reason", event);
-      if (!isMountedRef.current) {
-        return;
-      }
-      setScriptStatus("error");
-      const detail = (event as CustomEvent<unknown>)?.detail ?? "unknown error";
-      setErrorState({ script: `Error: ${detail}`, retryable: false });
-      setIsInitializingSession(false);
-    };
-
-    const attachScriptListeners = (target: HTMLScriptElement | null) => {
-      if (!target) return;
-      target.addEventListener("load", handleLoaded);
-      target.addEventListener("error", handleError as EventListener);
-    };
-
-    const detachScriptListeners = (target: HTMLScriptElement | null) => {
-      if (!target) return;
-      target.removeEventListener("load", handleLoaded);
-      target.removeEventListener("error", handleError as EventListener);
-    };
-
-    const ensureChatKitScript = () => {
-      if (window.customElements?.get("openai-chatkit")) {
-        handleLoaded();
-        return;
-      }
-
-      const existing = document.querySelector<HTMLScriptElement>(
-        "script[data-chatkit-loader]"
-      );
-
-      if (existing) {
-        scriptEl = existing;
-        attachScriptListeners(scriptEl);
-        return;
-      }
-
-      scriptEl = document.createElement("script");
-      scriptEl.src = CHATKIT_SCRIPT_URL;
-      scriptEl.async = true;
-      scriptEl.dataset.chatkitLoader = "true";
-      attachScriptListeners(scriptEl);
-      document.head.appendChild(scriptEl);
-    };
-
-    window.addEventListener("chatkit-script-loaded", handleLoaded);
-    window.addEventListener(
-      "chatkit-script-error",
-      handleError as EventListener
-    );
-
-    if (scriptStatus === "pending") {
-      ensureChatKitScript();
-      timeoutId = window.setTimeout(() => {
-        if (!window.customElements?.get("openai-chatkit")) {
-          handleError(
-            new CustomEvent("chatkit-script-error", {
-              detail:
-                "ChatKit web component is unavailable. Verify that the script URL is reachable.",
-            })
-          );
-        }
-      }, 5000);
+    if (scriptStatus === "ready") {
+      setErrorState({ script: null, retryable: false });
     }
-
-    return () => {
-      window.removeEventListener("chatkit-script-loaded", handleLoaded);
-      window.removeEventListener(
-        "chatkit-script-error",
-        handleError as EventListener
-      );
-      if (scriptEl) {
-        detachScriptListeners(scriptEl);
-      }
-      if (timeoutId) {
-        window.clearTimeout(timeoutId);
-      }
-    };
-  }, [scriptStatus, setErrorState]);
+  }, [scriptStatus, scriptError, setErrorState]);
 
   const handleResetChat = useCallback(() => {
     processedFacts.current.clear();
-    if (isBrowser) {
-      setScriptStatus(
-        window.customElements?.get("openai-chatkit") ? "ready" : "pending"
-      );
-    }
     setIsInitializingSession(true);
     setErrors(createInitialErrors());
+    retryScript();
     setWidgetInstanceKey((prev) => prev + 1);
-  }, []);
+  }, [retryScript]);
 
   const getClientSecret = useCallback(
     async (currentSecret: string | null) => {
@@ -286,7 +195,7 @@ function ConfiguredChatKitPanel({
             ? error.message
             : "Unable to start ChatKit session.";
         if (isMountedRef.current) {
-          setErrorState({ session: detail, retryable: false });
+          setErrorState({ session: detail, retryable: true });
         }
         throw error instanceof Error ? error : new Error(detail);
       } finally {
@@ -383,7 +292,7 @@ function ConfiguredChatKitPanel({
   });
 
   const activeError = errors.session ?? errors.integration;
-  const blockingError = errors.script ?? activeError;
+  const blockingError = errors.script ?? scriptError ?? activeError;
 
   if (isDev) {
     console.debug("[ChatKitPanel] render state", {
@@ -415,7 +324,9 @@ function ConfiguredChatKitPanel({
           fallbackMessage={
             blockingError || !isInitializingSession
               ? null
-              : "Loading assistant session..."
+              : scriptStatus === "loading"
+                ? "正在加载案例助手资源..."
+                : "正在启动案例助手会话..."
           }
           onRetry={blockingError && errors.retryable ? handleResetChat : null}
           retryLabel="Restart chat"
@@ -423,6 +334,108 @@ function ConfiguredChatKitPanel({
       </div>
     </div>
   );
+}
+
+function useChatKitScriptLoader(url: string): {
+  status: ScriptStatus;
+  error: string | null;
+  retry: () => void;
+} {
+  const [status, setStatus] = useState<ScriptStatus>("idle");
+  const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    if (!isBrowser) {
+      return;
+    }
+
+    if (window.customElements?.get("openai-chatkit")) {
+      setStatus("ready");
+      setError(null);
+      return;
+    }
+
+    let cancelled = false;
+    let scriptEl = document.querySelector<HTMLScriptElement>(
+      "script[data-chatkit-loader]"
+    );
+
+    const removeScript = () => {
+      if (
+        scriptEl?.dataset.chatkitLoader &&
+        scriptEl.getAttribute("src") !== null
+      ) {
+        scriptEl.remove();
+        scriptEl = null;
+      }
+    };
+
+    // Always reset state for new attempt
+    setStatus("loading");
+    setError(null);
+
+    const handleLoaded = () => {
+      if (cancelled) return;
+      setStatus("ready");
+      setError(null);
+    };
+
+    const handleError = (event: Event) => {
+      if (cancelled) return;
+      console.error("Failed to load ChatKit script", event);
+      setStatus("error");
+      setError("无法加载 ChatKit 资源，请稍后重试。");
+    };
+
+    if (scriptEl && scriptEl.src !== url) {
+      removeScript();
+    }
+
+    if (!scriptEl) {
+      scriptEl = document.createElement("script");
+      scriptEl.src = url;
+      scriptEl.async = true;
+      scriptEl.dataset.chatkitLoader = "true";
+      document.head.appendChild(scriptEl);
+    }
+
+    scriptEl.addEventListener("load", handleLoaded);
+    scriptEl.addEventListener("error", handleError);
+
+    // Fallback: if the script loads without defining the component
+    const definitionTimeout = window.setTimeout(() => {
+      if (cancelled) return;
+      if (!window.customElements?.get("openai-chatkit")) {
+        handleError(
+          new CustomEvent("chatkit-script-error", {
+            detail: "ChatKit web component not available after load.",
+          })
+        );
+      }
+    }, 5000);
+
+    return () => {
+      cancelled = true;
+      scriptEl?.removeEventListener("load", handleLoaded);
+      scriptEl?.removeEventListener("error", handleError);
+      window.clearTimeout(definitionTimeout);
+    };
+  }, [url, attempt]);
+
+  const retry = useCallback(() => {
+    if (isBrowser) {
+      const existing = document.querySelector<HTMLScriptElement>(
+        "script[data-chatkit-loader]"
+      );
+      if (existing) {
+        existing.remove();
+      }
+    }
+    setAttempt((current) => current + 1);
+  }, []);
+
+  return { status, error, retry };
 }
 
 function extractErrorDetail(
