@@ -8,6 +8,7 @@ import {
   useState,
   type PointerEvent,
 } from "react";
+import { createPortal } from "react-dom";
 import type { ColorScheme } from "@/hooks/useColorScheme";
 
 const MERMAID_KEYWORDS = [
@@ -271,20 +272,74 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
     setPanOffset({ x: 0, y: 0 });
   }, []);
 
-  const previewWrapperClass = useMemo(
-    () =>
-      isFullscreen
-        ? "fixed inset-4 z-50 flex flex-col gap-3 rounded-3xl bg-white/95 p-4 shadow-2xl ring-1 ring-slate-200/80 backdrop-blur-xl dark:bg-slate-950/90 dark:ring-slate-800/80"
-        : "space-y-3",
-    [isFullscreen]
-  );
-
   const previewContainerClass = useMemo(
     () =>
       `relative min-h-[320px] overflow-hidden rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-inner ring-1 ring-slate-200/70 dark:border-slate-800 dark:bg-slate-900/80 dark:ring-slate-800/80 ${
         isFullscreen ? "flex-1 h-full" : ""
       }`,
     [isFullscreen]
+  );
+
+  const previewControls = (
+    <div className="flex flex-col gap-3 text-sm font-medium text-slate-700 dark:text-slate-200 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-center gap-2">
+        <span>预览</span>
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <label className="flex items-center gap-3 rounded-full bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700 shadow-sm ring-1 ring-slate-200/80 backdrop-blur dark:bg-slate-800/70 dark:text-slate-200 dark:ring-slate-700/80">
+          <span className="whitespace-nowrap">缩放</span>
+          <input
+            aria-label="Mermaid 预览缩放"
+            className="h-2 w-36 cursor-pointer appearance-none rounded-full bg-slate-200 accent-indigo-500 dark:bg-slate-700"
+            type="range"
+            min={100}
+            max={500}
+            step={25}
+            value={zoom}
+            onChange={(event) => setZoom(Number(event.target.value))}
+          />
+          <span className="w-12 text-right tabular-nums text-sm">{zoom}%</span>
+        </label>
+        <button
+          type="button"
+          className="rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700/80"
+          onClick={resetView}
+        >
+          恢复默认大小
+        </button>
+        <button
+          type="button"
+          className="rounded-full bg-indigo-500 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white shadow-sm transition hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:bg-indigo-400 dark:hover:bg-indigo-500"
+          onClick={() => setIsFullscreen((current) => !current)}
+        >
+          {isFullscreen ? "退出全屏" : "全屏预览"}
+        </button>
+      </div>
+    </div>
+  );
+
+  const previewCanvas = (
+    <div
+      className={previewContainerClass}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={endPointerTracking}
+      onPointerCancel={endPointerTracking}
+    >
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,_rgba(148,163,184,0.12)_1px,_transparent_0)] bg-[length:20px_20px]" />
+      <div
+        className="relative origin-top-left"
+        style={{
+          transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${scale})`,
+          cursor: isPanning ? "grabbing" : "grab",
+        }}
+      >
+        <div ref={containerRef} className="mermaid" aria-live="polite" aria-label="Mermaid 预览" />
+      </div>
+      {error ? (
+        <p className="mt-3 text-sm text-rose-600 dark:text-rose-400">{error}</p>
+      ) : null}
+    </div>
   );
 
   return (
@@ -332,72 +387,29 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
             ) : null}
           </div>
 
-          <div className={previewWrapperClass}>
-            <div className="flex flex-col gap-3 text-sm font-medium text-slate-700 dark:text-slate-200 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-2">
-                <span>预览</span>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <label className="flex items-center gap-3 rounded-full bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700 shadow-sm ring-1 ring-slate-200/80 backdrop-blur dark:bg-slate-800/70 dark:text-slate-200 dark:ring-slate-700/80">
-                  <span className="whitespace-nowrap">缩放</span>
-                  <input
-                    aria-label="Mermaid 预览缩放"
-                    className="h-2 w-36 cursor-pointer appearance-none rounded-full bg-slate-200 accent-indigo-500 dark:bg-slate-700"
-                    type="range"
-                    min={100}
-                    max={500}
-                    step={25}
-                    value={zoom}
-                    onChange={(event) => setZoom(Number(event.target.value))}
-                  />
-                  <span className="w-12 text-right tabular-nums text-sm">{zoom}%</span>
-                </label>
-                <button
-                  type="button"
-                  className="rounded-full bg-slate-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700/80"
-                  onClick={resetView}
-                >
-                  恢复默认大小
-                </button>
-                <button
-                  type="button"
-                  className="rounded-full bg-indigo-500 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white shadow-sm transition hover:bg-indigo-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 dark:bg-indigo-400 dark:hover:bg-indigo-500"
-                  onClick={() => setIsFullscreen((current) => !current)}
-                >
-                  {isFullscreen ? "退出全屏" : "全屏预览"}
-                </button>
-              </div>
-            </div>
-            <div
-              className={previewContainerClass}
-              onPointerDown={handlePointerDown}
-              onPointerMove={handlePointerMove}
-              onPointerUp={endPointerTracking}
-              onPointerCancel={endPointerTracking}
-            >
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,_rgba(148,163,184,0.12)_1px,_transparent_0)] bg-[length:20px_20px]" />
-              <div
-                className="relative origin-top-left"
-                style={{
-                  transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${scale})`,
-                  cursor: isPanning ? "grabbing" : "grab",
-                }}
-              >
-                <div ref={containerRef} className="mermaid" aria-live="polite" aria-label="Mermaid 预览" />
-              </div>
-              {error ? (
-                <p className="mt-3 text-sm text-rose-600 dark:text-rose-400">{error}</p>
-              ) : null}
-            </div>
+          <div className="space-y-3">
+            {previewControls}
+            {previewCanvas}
           </div>
         </div>
       </div>
-      {isFullscreen ? (
-        <div
-          className="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm"
-          aria-hidden="true"
-        />
-      ) : null}
+      {isFullscreen
+        ? createPortal(
+            <>
+              <div
+                className="fixed inset-0 z-40 bg-slate-900/70 backdrop-blur-sm"
+                aria-hidden="true"
+              />
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-6">
+                <div className="relative flex h-full w-full max-w-6xl flex-col gap-4 rounded-3xl bg-white/95 p-4 shadow-2xl ring-1 ring-slate-200/80 backdrop-blur-xl dark:bg-slate-950/90 dark:ring-slate-800/80">
+                  {previewControls}
+                  {previewCanvas}
+                </div>
+              </div>
+            </>,
+            document.body
+          )
+        : null}
     </section>
   );
 }
