@@ -357,12 +357,7 @@ function ConfiguredChatKitPanel({
   return (
     <div className="relative pb-8 flex h-[90vh] w-full rounded-2xl flex-col overflow-hidden bg-white shadow-sm transition-colors dark:bg-slate-900">
       <div className="flex items-start justify-between gap-3 border-b border-slate-200/60 bg-white/80 px-4 py-3 text-slate-700 backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/70 dark:text-slate-200">
-        <div className="space-y-1">
-          <p className="text-sm font-semibold">智能对话</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            与助手交流并上传材料，系统会自动根据配置的工作流提供回复。
-          </p>
-        </div>
+        <p className="text-sm font-semibold">案例报告</p>
       </div>
       <div className="relative flex-1 min-h-0">
         <ChatKit
