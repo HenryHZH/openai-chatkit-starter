@@ -9,6 +9,10 @@ export const WORKFLOW_ID =
 
 export const CREATE_SESSION_ENDPOINT = "/api/create-session";
 
+export const CHATKIT_SCRIPT_URL =
+  process.env.NEXT_PUBLIC_CHATKIT_SCRIPT_URL?.trim() ??
+  "https://cdn.platform.openai.com/deployments/chatkit/chatkit.js";
+
 export const STARTER_PROMPTS: StartScreenPrompt[] = [
 ];
 
