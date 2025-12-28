@@ -10,13 +10,40 @@ import {
 } from "react";
 import type { ColorScheme } from "@/hooks/useColorScheme";
 
-const DEFAULT_DIAGRAM = `graph TD
-  A[开始] --> B{条件?}
-  B -->|是| C[处理1]
-  B -->|否| D[处理2]
-  C --> E[结束]
-  D --> E
-`;
+const MERMAID_KEYWORDS = [
+  "graph",
+  "flowchart",
+  "sequenceDiagram",
+  "classDiagram",
+  "stateDiagram",
+  "erDiagram",
+  "journey",
+  "gantt",
+  "pie",
+  "mindmap",
+  "timeline",
+];
+
+const getMermaidFromText = (value: string) => {
+  const normalized = value.trim();
+  if (!normalized) {
+    return "";
+  }
+
+  const lower = normalized.toLowerCase();
+  if (lower.includes("```mermaid")) {
+    return normalized;
+  }
+
+  const matchesKeyword = MERMAID_KEYWORDS.some((keyword) => {
+    const k = keyword.toLowerCase();
+    return (
+      lower.startsWith(k) || lower.includes(`\n${k}`) || lower.includes(`\r${k}`)
+    );
+  });
+
+  return matchesKeyword ? normalized : "";
+};
 
 type MermaidAPI = {
   initialize: (config: unknown) => void;
@@ -34,7 +61,9 @@ type MermaidPlaygroundProps = {
 };
 
 export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
-  const [code, setCode] = useState(DEFAULT_DIAGRAM);
+  const [inputCode, setInputCode] = useState("");
+  const [clipboardCode, setClipboardCode] = useState("");
+  const [isInputCollapsed, setIsInputCollapsed] = useState(false);
   const [zoom, setZoom] = useState(100);
   const [error, setError] = useState<string | null>(null);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
@@ -73,6 +102,13 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
 
   const renderDiagram = useCallback(
     async (diagram: string) => {
+      if (!diagram.trim()) {
+        if (containerRef.current) {
+          containerRef.current.innerHTML = "";
+        }
+        setError(null);
+        return;
+      }
       try {
         const mermaid = await loadMermaid();
         mermaid.initialize({
@@ -106,19 +142,66 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
   );
 
   useEffect(() => {
+    let isActive = true;
+
+    const readClipboard = async () => {
+      if (!navigator?.clipboard?.readText) {
+        return;
+      }
+
+      try {
+        const content = await navigator.clipboard.readText();
+        const normalized = getMermaidFromText(content);
+
+        if (!isActive) {
+          return;
+        }
+
+        if (!normalized) {
+          setClipboardCode("");
+          return;
+        }
+
+        setClipboardCode((current) =>
+          current === normalized ? current : normalized
+        );
+      } catch (clipboardError) {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn("读取剪贴板失败", clipboardError);
+        }
+      }
+    };
+
+    readClipboard();
+    const intervalId = window.setInterval(readClipboard, 3000);
+
+    return () => {
+      isActive = false;
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
+  const effectiveCode = useMemo(() => {
+    if (inputCode.trim()) {
+      return inputCode;
+    }
+    return clipboardCode;
+  }, [clipboardCode, inputCode]);
+
+  useEffect(() => {
     let cancelled = false;
 
     (async () => {
       if (cancelled) {
         return;
       }
-      await renderDiagram(code);
+      await renderDiagram(effectiveCode);
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [code, renderDiagram]);
+  }, [effectiveCode, renderDiagram]);
 
   const scale = useMemo(() => Math.max(1, zoom / 100), [zoom]);
 
@@ -184,42 +267,61 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
               随输入实时预览图形
             </h2>
           </div>
-          <label className="flex items-center gap-3 rounded-full bg-white/70 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200/80 backdrop-blur dark:bg-slate-800/70 dark:text-slate-200 dark:ring-slate-700/80">
-            <span className="whitespace-nowrap">缩放</span>
-            <input
-              aria-label="Mermaid 预览缩放"
-              className="h-2 w-40 cursor-pointer appearance-none rounded-full bg-slate-200 accent-indigo-500 dark:bg-slate-700"
-              type="range"
-              min={100}
-              max={500}
-              step={25}
-              value={zoom}
-              onChange={(event) => setZoom(Number(event.target.value))}
-            />
-            <span className="w-14 text-right tabular-nums text-sm">{zoom}%</span>
-          </label>
+          {clipboardCode && !inputCode ? (
+            <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-900/60 dark:text-emerald-100 dark:ring-emerald-800/80">
+              检测到剪贴板 Mermaid 内容
+            </span>
+          ) : null}
         </div>
 
         <div className="space-y-6">
           <div className="space-y-3">
-            <label className="flex items-center justify-between text-sm font-medium text-slate-700 dark:text-slate-200">
+            <div className="flex items-center justify-between text-sm font-medium text-slate-700 dark:text-slate-200">
               <span>Mermaid 输入</span>
-              <span className="text-xs text-slate-500 dark:text-slate-400">实时渲染</span>
-            </label>
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-inner ring-1 ring-slate-200/70 dark:border-slate-800 dark:bg-slate-900 dark:ring-slate-800/80">
-              <textarea
-                className="h-32 w-full resize-none bg-transparent px-4 py-3 font-mono text-sm text-slate-800 outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:text-slate-100"
-                value={code}
-                onChange={(event) => setCode(event.target.value)}
-                spellCheck={false}
-              />
+              <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                <span className="whitespace-nowrap">实时渲染</span>
+                <button
+                  type="button"
+                  className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700/80"
+                  onClick={() => setIsInputCollapsed((current) => !current)}
+                >
+                  {isInputCollapsed ? "展开输入" : "收起输入"}
+                </button>
+              </div>
             </div>
+            {!isInputCollapsed ? (
+              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-inner ring-1 ring-slate-200/70 dark:border-slate-800 dark:bg-slate-900 dark:ring-slate-800/80">
+                <textarea
+                  className="h-32 w-full resize-none bg-transparent px-4 py-3 font-mono text-sm text-slate-800 outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:text-slate-100"
+                  value={inputCode}
+                  onChange={(event) => setInputCode(event.target.value)}
+                  spellCheck={false}
+                  placeholder="粘贴或输入 Mermaid 代码后立即渲染"
+                />
+              </div>
+            ) : null}
           </div>
 
           <div className="space-y-3">
-            <div className="flex items-center justify-between text-sm font-medium text-slate-700 dark:text-slate-200">
-              <span>预览</span>
-              <span className="text-xs text-slate-500 dark:text-slate-400">支持 100%-500% 缩放</span>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm font-medium text-slate-700 dark:text-slate-200">
+              <div className="flex items-center gap-2">
+                <span>预览</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">支持 100%-500% 缩放</span>
+              </div>
+              <label className="flex items-center gap-3 rounded-full bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700 shadow-sm ring-1 ring-slate-200/80 backdrop-blur dark:bg-slate-800/70 dark:text-slate-200 dark:ring-slate-700/80">
+                <span className="whitespace-nowrap">缩放</span>
+                <input
+                  aria-label="Mermaid 预览缩放"
+                  className="h-2 w-36 cursor-pointer appearance-none rounded-full bg-slate-200 accent-indigo-500 dark:bg-slate-700"
+                  type="range"
+                  min={100}
+                  max={500}
+                  step={25}
+                  value={zoom}
+                  onChange={(event) => setZoom(Number(event.target.value))}
+                />
+                <span className="w-12 text-right tabular-nums text-sm">{zoom}%</span>
+              </label>
             </div>
             <div
               className="relative min-h-[320px] overflow-hidden rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-inner ring-1 ring-slate-200/70 dark:border-slate-800 dark:bg-slate-900/80 dark:ring-slate-800/80"
