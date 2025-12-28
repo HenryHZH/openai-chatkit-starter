@@ -350,18 +350,43 @@ function useChatKitScriptLoader(url: string): {
       return;
     }
 
-    if (window.customElements?.get("openai-chatkit")) {
-      setStatus("ready");
-      setError(null);
-      return;
-    }
-
     let cancelled = false;
     let scriptEl = document.querySelector<HTMLScriptElement>(
       "script[data-chatkit-loader]"
     );
 
+    const handleReady = () => {
+      if (cancelled) return;
+      setStatus("ready");
+      setError(null);
+    };
+
+    const handleError = (event: Event) => {
+      if (cancelled) return;
+      console.error("Failed to load ChatKit script", event);
+      setStatus("error");
+      setError("无法加载 ChatKit 资源，请稍后重试。");
+    };
+
+    const handleLoaded = () => {
+      if (cancelled) return;
+      // Ensure the custom element is registered before marking ready
+      window.customElements
+        ?.whenDefined("openai-chatkit")
+        .then(handleReady)
+        .catch((error) => {
+          console.error("Failed to register ChatKit element", error);
+          handleError(
+            new CustomEvent("chatkit-script-error", {
+              detail: "ChatKit web component not available after load.",
+            })
+          );
+        });
+    };
+
     const removeScript = () => {
+      scriptEl?.removeEventListener("load", handleLoaded);
+      scriptEl?.removeEventListener("error", handleError);
       if (
         scriptEl?.dataset.chatkitLoader &&
         scriptEl.getAttribute("src") !== null
@@ -375,18 +400,10 @@ function useChatKitScriptLoader(url: string): {
     setStatus("loading");
     setError(null);
 
-    const handleLoaded = () => {
-      if (cancelled) return;
-      setStatus("ready");
-      setError(null);
-    };
-
-    const handleError = (event: Event) => {
-      if (cancelled) return;
-      console.error("Failed to load ChatKit script", event);
-      setStatus("error");
-      setError("无法加载 ChatKit 资源，请稍后重试。");
-    };
+    if (window.customElements?.get("openai-chatkit")) {
+      handleReady();
+      return undefined;
+    }
 
     if (scriptEl && scriptEl.src !== url) {
       removeScript();
