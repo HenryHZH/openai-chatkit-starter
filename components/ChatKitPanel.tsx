@@ -35,6 +35,8 @@ type ErrorState = {
 
 const isBrowser = typeof window !== "undefined";
 const isDev = process.env.NODE_ENV !== "production";
+const CHATKIT_SCRIPT_URL =
+  "https://cdn.platform.openai.com/deployments/chatkit/chatkit.js";
 
 const createInitialErrors = (): ErrorState => ({
   script: null,
@@ -98,6 +100,7 @@ function ConfiguredChatKitPanel({
     }
 
     let timeoutId: number | undefined;
+    let scriptEl: HTMLScriptElement | null = null;
 
     const handleLoaded = () => {
       if (!isMountedRef.current) {
@@ -118,15 +121,50 @@ function ConfiguredChatKitPanel({
       setIsInitializingSession(false);
     };
 
+    const attachScriptListeners = (target: HTMLScriptElement | null) => {
+      if (!target) return;
+      target.addEventListener("load", handleLoaded);
+      target.addEventListener("error", handleError as EventListener);
+    };
+
+    const detachScriptListeners = (target: HTMLScriptElement | null) => {
+      if (!target) return;
+      target.removeEventListener("load", handleLoaded);
+      target.removeEventListener("error", handleError as EventListener);
+    };
+
+    const ensureChatKitScript = () => {
+      if (window.customElements?.get("openai-chatkit")) {
+        handleLoaded();
+        return;
+      }
+
+      const existing = document.querySelector<HTMLScriptElement>(
+        "script[data-chatkit-loader]"
+      );
+
+      if (existing) {
+        scriptEl = existing;
+        attachScriptListeners(scriptEl);
+        return;
+      }
+
+      scriptEl = document.createElement("script");
+      scriptEl.src = CHATKIT_SCRIPT_URL;
+      scriptEl.async = true;
+      scriptEl.dataset.chatkitLoader = "true";
+      attachScriptListeners(scriptEl);
+      document.head.appendChild(scriptEl);
+    };
+
     window.addEventListener("chatkit-script-loaded", handleLoaded);
     window.addEventListener(
       "chatkit-script-error",
       handleError as EventListener
     );
 
-    if (window.customElements?.get("openai-chatkit")) {
-      handleLoaded();
-    } else if (scriptStatus === "pending") {
+    if (scriptStatus === "pending") {
+      ensureChatKitScript();
       timeoutId = window.setTimeout(() => {
         if (!window.customElements?.get("openai-chatkit")) {
           handleError(
@@ -145,6 +183,9 @@ function ConfiguredChatKitPanel({
         "chatkit-script-error",
         handleError as EventListener
       );
+      if (scriptEl) {
+        detachScriptListeners(scriptEl);
+      }
       if (timeoutId) {
         window.clearTimeout(timeoutId);
       }
