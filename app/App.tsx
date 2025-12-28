@@ -28,18 +28,13 @@ export default function App() {
       <div className="pointer-events-none absolute left-10 top-1/3 z-0 h-28 w-28 rounded-full bg-gradient-to-br from-indigo-300/20 via-sky-300/20 to-transparent blur-3xl drift-wave" />
 
       <div className="relative mx-auto flex min-h-screen w-full max-w-screen-2xl flex-col gap-10 px-6 py-14 md:px-10">
-        <header className="max-w-3xl space-y-4">
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm ring-1 ring-slate-200/60 backdrop-blur dark:bg-slate-900/70 dark:text-slate-300 dark:ring-slate-800/60">
-            AI 案例助手
-          </span>
-          <div className="space-y-3">
-            <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">
-              输入你的案例
-            </h1>
-            <p className="text-lg text-slate-600 dark:text-slate-300">
-              你可以上传完整的案例，也可以提供案例名/案号，我将为你介绍案例。
-            </p>
-          </div>
+        <header className="max-w-3xl space-y-3">
+          <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">
+            案例分析专家
+          </h1>
+          <p className="text-lg text-slate-600 dark:text-slate-300">
+            请在右下方输入案例，也可以上传完整的裁判文书或案卷，专家将在5分钟内完成分析。
+          </p>
         </header>
 
         <section className="relative overflow-hidden rounded-3xl border border-white/60 bg-white/70 p-6 shadow-lg backdrop-blur-lg ring-1 ring-slate-200/70 dark:border-slate-800/60 dark:bg-slate-900/70 dark:ring-slate-800/80">
@@ -49,7 +44,7 @@ export default function App() {
           </div>
         </section>
 
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.05fr_1.15fr]">
+        <div className="grid grid-cols-1 items-stretch gap-6 xl:grid-cols-[1.05fr_1.15fr]">
           <MermaidPlayground scheme={scheme} />
 
           <div className="relative rounded-3xl border border-white/70 bg-white/70 p-2 shadow-2xl backdrop-blur-xl ring-1 ring-slate-200/70 dark:border-slate-800/60 dark:bg-slate-900/70 dark:ring-slate-800/80">

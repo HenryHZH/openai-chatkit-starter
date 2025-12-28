@@ -8,7 +8,7 @@ export const CREATE_SESSION_ENDPOINT = "/api/create-session";
 export const STARTER_PROMPTS: StartScreenPrompt[] = [
 ];
 
-export const PLACEHOLDER_INPUT = "也可以直接输入案号";
+export const PLACEHOLDER_INPUT = "点击左侧上传文件，也可以直接键入案例";
 
 export const GREETING = "上传你的案例";
 
