@@ -8,6 +8,7 @@ import {
   useState,
   type PointerEvent,
 } from "react";
+import { createPortal } from "react-dom";
 import type { ColorScheme } from "@/hooks/useColorScheme";
 
 const MERMAID_KEYWORDS = [
@@ -68,6 +69,7 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
   const [error, setError] = useState<string | null>(null);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const renderId = useRef(`mermaid-preview-${Math.random().toString(36).slice(2)}`);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -201,7 +203,7 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
     return () => {
       cancelled = true;
     };
-  }, [effectiveCode, renderDiagram]);
+  }, [effectiveCode, isFullscreen, renderDiagram]);
 
   const scale = useMemo(() => Math.max(1, zoom / 100), [zoom]);
 
@@ -258,6 +260,37 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
     setPanOffset({ x: 0, y: 0 });
     setZoom(100);
   }, []);
+
+  const PreviewCanvas = ({
+    className,
+  }: {
+    className?: string;
+  }) => (
+    <div
+      className={
+        className ??
+        "relative min-h-[320px] overflow-hidden rounded-lg border border-slate-200 bg-white/90 p-4 shadow-inner dark:border-slate-800 dark:bg-slate-900/80"
+      }
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={endPointerTracking}
+      onPointerCancel={endPointerTracking}
+    >
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,_rgba(148,163,184,0.12)_1px,_transparent_0)] bg-[length:20px_20px]" />
+      <div
+        className="relative origin-top-left"
+        style={{
+          transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${scale})`,
+          cursor: isPanning ? "grabbing" : "grab",
+        }}
+      >
+        <div ref={containerRef} className="mermaid" aria-live="polite" aria-label="Mermaid 预览" />
+      </div>
+      {error ? (
+        <p className="mt-3 text-sm text-rose-600 dark:text-rose-400">{error}</p>
+      ) : null}
+    </div>
+  );
 
   return (
     <section className="relative overflow-hidden rounded-xl border border-slate-200 bg-white/90 p-6 shadow-2xl backdrop-blur-lg dark:border-slate-800 dark:bg-slate-900/85">
@@ -325,32 +358,70 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
                   />
                   <span className="w-12 text-right tabular-nums text-sm">{zoom}%</span>
                 </label>
+                <button
+                  type="button"
+                  className="rounded-full bg-indigo-600 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white shadow-sm ring-1 ring-indigo-500/70 transition hover:bg-indigo-500 backdrop-blur dark:ring-indigo-400/70"
+                  onClick={() => setIsFullscreen(true)}
+                >
+                  全屏
+                </button>
               </div>
             </div>
-            <div
-              className="relative min-h-[320px] overflow-hidden rounded-lg border border-slate-200 bg-white/90 p-4 shadow-inner dark:border-slate-800 dark:bg-slate-900/80"
-              onPointerDown={handlePointerDown}
-              onPointerMove={handlePointerMove}
-              onPointerUp={endPointerTracking}
-              onPointerCancel={endPointerTracking}
-            >
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,_rgba(148,163,184,0.12)_1px,_transparent_0)] bg-[length:20px_20px]" />
-              <div
-                className="relative origin-top-left"
-                style={{
-                  transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${scale})`,
-                  cursor: isPanning ? "grabbing" : "grab",
-                }}
-              >
-                <div ref={containerRef} className="mermaid" aria-live="polite" aria-label="Mermaid 预览" />
-              </div>
-              {error ? (
-                <p className="mt-3 text-sm text-rose-600 dark:text-rose-400">{error}</p>
-              ) : null}
-            </div>
+            <PreviewCanvas />
           </div>
         </div>
       </div>
+      {isFullscreen
+        ? createPortal(
+            <div className="fixed inset-0 z-50 bg-slate-900/95 text-slate-50 backdrop-blur-md">
+              <div className="flex h-full flex-col">
+                <div className="flex items-center justify-between px-6 py-4">
+                  <div className="flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.14em] text-slate-200">
+                    <span>Mermaid 全屏预览</span>
+                    <span className="rounded-full bg-slate-800/70 px-3 py-1 text-xs text-slate-200 ring-1 ring-slate-700">
+                      缩放 {zoom}%
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      className="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-100 shadow-sm ring-1 ring-slate-600 transition hover:bg-white/20"
+                      onClick={resetPreview}
+                    >
+                      默认
+                    </button>
+                    <label className="flex items-center gap-3 rounded-full bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-100 shadow-sm ring-1 ring-slate-700/80">
+                      <span className="whitespace-nowrap">缩放</span>
+                      <input
+                        aria-label="全屏预览缩放"
+                        className="h-2 w-40 cursor-pointer appearance-none rounded-full bg-slate-700 accent-indigo-400"
+                        type="range"
+                        min={100}
+                        max={500}
+                        step={25}
+                        value={zoom}
+                        onChange={(event) => setZoom(Number(event.target.value))}
+                      />
+                      <span className="w-14 text-right tabular-nums text-sm">{zoom}%</span>
+                    </label>
+                    <button
+                      type="button"
+                      aria-label="退出全屏"
+                      className="rounded-full bg-rose-500 px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white shadow-sm ring-1 ring-rose-400 transition hover:bg-rose-400"
+                      onClick={() => setIsFullscreen(false)}
+                    >
+                      退出全屏
+                    </button>
+                  </div>
+                </div>
+                <div className="flex-1 overflow-hidden px-6 pb-8">
+                  <PreviewCanvas className="relative h-full min-h-[480px] w-full rounded-xl border border-slate-700 bg-slate-900/70 p-6 shadow-2xl" />
+                </div>
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
     </section>
   );
 }
