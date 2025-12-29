@@ -8,9 +8,9 @@ export const CREATE_SESSION_ENDPOINT = "/api/create-session";
 export const STARTER_PROMPTS: StartScreenPrompt[] = [
 ];
 
-export const PLACEHOLDER_INPUT = "也可以直接输入案号";
+export const PLACEHOLDER_INPUT = "在此上传文档 或 直接键入";
 
-export const GREETING = "上传你的案例";
+export const GREETING = "";
 
 export const getThemeConfig = (theme: ColorScheme): ThemeOption => ({
   color: {
