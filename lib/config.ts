@@ -1,38 +1,16 @@
-import type {
-  ColorScheme,
-  StartScreenPrompt,
-  ThemeOption,
-} from "@openai/chatkit";
+import { ColorScheme, StartScreenPrompt, ThemeOption } from "@openai/chatkit";
 
 export const WORKFLOW_ID =
   process.env.NEXT_PUBLIC_CHATKIT_WORKFLOW_ID?.trim() ?? "";
 
 export const CREATE_SESSION_ENDPOINT = "/api/create-session";
 
-export const CHATKIT_SCRIPT_URL =
-  process.env.NEXT_PUBLIC_CHATKIT_SCRIPT_URL?.trim() ??
-  "https://cdn.platform.openai.com/deployments/chatkit/chatkit.js";
-
-export const DOMAIN_KEY = process.env.NEXT_PUBLIC_CHATKIT_DOMAIN_KEY?.trim();
-
 export const STARTER_PROMPTS: StartScreenPrompt[] = [
-  {
-    label: "Summarize",
-    prompt: "Summarize the last message in 3 bullet points.",
-  },
-  {
-    label: "Brainstorm",
-    prompt: "Generate three feature ideas and their pros/cons.",
-  },
-  {
-    label: "Rewrite",
-    prompt: "Rewrite the previous response to be concise and friendly.",
-  },
 ];
 
-export const PLACEHOLDER_INPUT = "Ask the assistant to run your workflow";
+export const PLACEHOLDER_INPUT = "也可以直接输入案号";
 
-export const GREETING = "How can I help you explore your workflow today?";
+export const GREETING = "上传你的案例";
 
 export const getThemeConfig = (theme: ColorScheme): ThemeOption => ({
   color: {
@@ -47,4 +25,6 @@ export const getThemeConfig = (theme: ColorScheme): ThemeOption => ({
     },
   },
   radius: "round",
+  // Add other theme options here
+  // chatkit.studio/playground to explore config options
 });

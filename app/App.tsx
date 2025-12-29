@@ -1,96 +1,70 @@
 "use client";
 
-import { useMemo } from "react";
-import { ChatKitPanel } from "@/components/ChatKitPanel";
+import { useCallback } from "react";
+import { BouncingBalls } from "@/components/BouncingBalls";
+import { ChatKitPanel, type FactAction } from "@/components/ChatKitPanel";
+import { MermaidPlayground } from "@/components/MermaidPlayground";
 import { useColorScheme } from "@/hooks/useColorScheme";
 
-const themeOptions = [
-  { label: "System", value: "system" as const },
-  { label: "Light", value: "light" as const },
-  { label: "Dark", value: "dark" as const },
-];
-
 export default function App() {
-  const { scheme, preference, setPreference, setScheme } = useColorScheme();
+  const { scheme, setScheme } = useColorScheme();
 
-  const themeDescription = useMemo(() => {
-    if (preference === "system") {
-      return "Follows your OS preference";
+  const handleWidgetAction = useCallback(async (action: FactAction) => {
+    if (process.env.NODE_ENV !== "production") {
+      console.info("[ChatKitPanel] widget action", action);
     }
-    return preference === "light" ? "Light UI" : "Dark UI";
-  }, [preference]);
+  }, []);
+
+  const handleResponseEnd = useCallback(() => {
+    if (process.env.NODE_ENV !== "production") {
+      console.debug("[ChatKitPanel] response end");
+    }
+  }, []);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-100 via-white to-slate-100 px-4 py-12 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-50">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
-        <header className="space-y-3">
-          <p className="inline-flex items-center rounded-full bg-blue-600/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700 dark:bg-blue-400/10 dark:text-blue-100">
-            OpenAI ChatKit
-          </p>
-          <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">
-            ChatKit Starter Template
-          </h1>
-          <p className="max-w-3xl text-lg text-slate-700 dark:text-slate-200">
-            A minimal Next.js example that hosts your Agent Builder workflow through the ChatKit web component.
-            Customize your prompts, greeting, and theme to match your product and start testing quickly.
-          </p>
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-50">
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-0 mx-auto h-[460px] max-w-5xl rounded-full bg-gradient-to-b from-indigo-300/40 via-sky-200/30 to-transparent blur-3xl dark:from-indigo-500/20 dark:via-sky-500/20 animated-orb" />
+      <div className="pointer-events-none absolute bottom-[-10%] right-[-10%] z-0 h-80 w-80 rounded-full bg-gradient-to-tr from-sky-400/20 via-indigo-400/10 to-transparent blur-3xl animated-orb-delay" />
+      <div className="pointer-events-none absolute left-10 top-1/3 z-0 h-28 w-28 rounded-full bg-gradient-to-br from-indigo-300/20 via-sky-300/20 to-transparent blur-3xl drift-wave" />
+
+      <div className="relative mx-auto flex min-h-screen w-full max-w-screen-2xl flex-col gap-10 px-6 py-14 md:px-10">
+        <header className="max-w-3xl space-y-4">
+          <span className="inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm ring-1 ring-slate-200/60 backdrop-blur dark:bg-slate-900/70 dark:text-slate-300 dark:ring-slate-800/60">
+            AI 案例助手
+          </span>
+          <div className="space-y-3">
+            <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">
+              输入你的案例
+            </h1>
+            <p className="text-lg text-slate-600 dark:text-slate-300">
+              你可以上传完整的案例，也可以提供案例名/案号，我将为你介绍案例。
+            </p>
+          </div>
         </header>
 
-        <div className="grid gap-6 lg:grid-cols-[1.05fr_1fr]">
-          <section className="rounded-2xl border border-slate-200/70 bg-white/80 p-6 shadow-sm backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/70">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-xl font-semibold">Configuration</h2>
-                <p className="text-sm text-slate-600 dark:text-slate-300">Update <code className="text-xs font-mono">.env.local</code> with your ChatKit credentials.</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-semibold">Theme</p>
-                <p className="text-xs text-slate-600 dark:text-slate-300">{themeDescription}</p>
-              </div>
-            </div>
-            <div className="mt-4 grid gap-3 text-sm text-slate-700 dark:text-slate-200">
-              <div className="rounded-xl border border-slate-200/70 bg-slate-50/60 p-3 dark:border-slate-800/70 dark:bg-slate-800/50">
-                <p className="font-semibold text-slate-900 dark:text-slate-50">Workflow ID</p>
-                <p className="text-slate-600 dark:text-slate-200">Set <code className="text-xs font-mono">NEXT_PUBLIC_CHATKIT_WORKFLOW_ID</code> to your published Agent Builder workflow ID.</p>
-              </div>
-              <div className="rounded-xl border border-slate-200/70 bg-slate-50/60 p-3 dark:border-slate-800/70 dark:bg-slate-800/50">
-                <p className="font-semibold text-slate-900 dark:text-slate-50">API Key</p>
-                <p className="text-slate-600 dark:text-slate-200">Provide an <code className="text-xs font-mono">OPENAI_API_KEY</code> from the same project as your workflow so sessions can be created.</p>
-              </div>
-              <div className="rounded-xl border border-slate-200/70 bg-slate-50/60 p-3 dark:border-slate-800/70 dark:bg-slate-800/50">
-                <p className="font-semibold text-slate-900 dark:text-slate-50">Optional Domain Key</p>
-                <p className="text-slate-600 dark:text-slate-200">Add <code className="text-xs font-mono">NEXT_PUBLIC_CHATKIT_DOMAIN_KEY</code> for production to keep the widget mounted after the domain allowlist check.</p>
-              </div>
-            </div>
+        <section className="relative overflow-hidden rounded-3xl border border-white/60 bg-white/70 p-6 shadow-lg backdrop-blur-lg ring-1 ring-slate-200/70 dark:border-slate-800/60 dark:bg-slate-900/70 dark:ring-slate-800/80">
+          <div className="pointer-events-none absolute inset-0 shimmer-surface" />
+          <div className="relative min-h-[260px]">
+            <BouncingBalls />
+          </div>
+        </section>
 
-            <div className="mt-5 flex flex-wrap items-center gap-2">
-              {themeOptions.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  className={`rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${
-                    preference === option.value
-                      ? "border-blue-600 bg-blue-600 text-white shadow-sm"
-                      : "border-slate-200 bg-white text-slate-800 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-slate-600"
-                  }`}
-                  onClick={() =>
-                    option.value === "light" || option.value === "dark"
-                      ? setScheme(option.value)
-                      : setPreference(option.value)
-                  }
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </section>
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.05fr_1.15fr]">
+          <MermaidPlayground scheme={scheme} />
 
-          <section className="rounded-2xl border border-slate-200/70 bg-white/90 p-2 shadow-xl backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/80">
-            <div className="rounded-xl bg-gradient-to-b from-white/80 to-slate-50/70 p-3 dark:from-slate-900/70 dark:to-slate-950/60">
-              <ChatKitPanel theme={scheme} onThemeRequest={setScheme} />
+          <div className="relative rounded-3xl border border-white/70 bg-white/70 p-2 shadow-2xl backdrop-blur-xl ring-1 ring-slate-200/70 dark:border-slate-800/60 dark:bg-slate-900/70 dark:ring-slate-800/80">
+            <div className="absolute inset-x-10 top-0 h-24 rounded-full bg-gradient-to-b from-slate-100/60 via-white/0 to-white/0 blur-2xl dark:from-slate-800/50" />
+            <div className="relative rounded-2xl bg-gradient-to-br from-white/90 to-slate-100/70 p-4 shadow-inner dark:from-slate-900/80 dark:to-slate-950/60">
+              <ChatKitPanel
+                theme={scheme}
+                onWidgetAction={handleWidgetAction}
+                onResponseEnd={handleResponseEnd}
+                onThemeRequest={setScheme}
+              />
             </div>
-          </section>
+          </div>
         </div>
+
       </div>
     </main>
   );
