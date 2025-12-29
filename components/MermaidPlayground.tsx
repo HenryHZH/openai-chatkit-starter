@@ -134,7 +134,7 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
         const message =
           renderError instanceof Error
             ? renderError.message
-            : "无法渲染当前的 mermaid 图表";
+            : "无法渲染当前的图表";
         setError(message);
       }
     },
@@ -260,11 +260,11 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
       <div className="relative space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-50">
-            可视化图表
+            案例可视化图表
           </h2>
           {clipboardCode && !inputCode ? (
             <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-900/60 dark:text-emerald-100 dark:ring-emerald-800/80">
-              检测到剪贴板 Mermaid 内容
+              剪贴板内容已自动渲染
             </span>
           ) : null}
         </div>
@@ -272,9 +272,9 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
         <div className="space-y-6">
           <div className="space-y-3">
             <div className="flex items-center justify-between text-sm font-medium text-slate-700 dark:text-slate-200">
-              <span>Mermaid 输入</span>
+              <span> </span>
               <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-                <span className="whitespace-nowrap">实时渲染</span>
+                <span className="whitespace-nowrap"> </span>
                 <button
                   type="button"
                   className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700/80"
@@ -293,7 +293,7 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
                   value={inputCode}
                   onChange={(event) => setInputCode(event.target.value)}
                   spellCheck={false}
-                  placeholder="粘贴或输入 Mermaid 代码后立即渲染"
+                  placeholder="复制或输入后立即渲染"
                 />
               </div>
             ) : null}
@@ -303,12 +303,12 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm font-medium text-slate-700 dark:text-slate-200">
               <div className="flex items-center gap-2">
                 <span>预览</span>
-                <span className="text-xs text-slate-500 dark:text-slate-400">支持 100%-500% 缩放</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400"> </span>
               </div>
               <label className="flex items-center gap-3 rounded-full bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700 shadow-sm ring-1 ring-slate-200/80 backdrop-blur dark:bg-slate-800/70 dark:text-slate-200 dark:ring-slate-700/80">
                 <span className="whitespace-nowrap">缩放</span>
                 <input
-                  aria-label="Mermaid 预览缩放"
+                  aria-label="预览缩放"
                   className="h-2 w-36 cursor-pointer appearance-none rounded-full bg-slate-200 accent-indigo-500 dark:bg-slate-700"
                   type="range"
                   min={100}
