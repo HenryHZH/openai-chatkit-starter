@@ -1,10 +1,9 @@
-import Script from "next/script";
 import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AgentKit demo",
-  description: "Demo of ChatKit with hosted workflow",
+  title: "ChatKit Starter Template",
+  description: "Minimal Next.js starter for OpenAI ChatKit",
 };
 
 export default function RootLayout({
@@ -14,13 +13,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <Script
-          src="https://cdn.platform.openai.com/deployments/chatkit/chatkit.js"
-          strategy="beforeInteractive"
-        />
-      </head>
-      <body className="antialiased">{children}</body>
+      <body className="bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-50">
+        {children}
+      </body>
     </html>
   );
 }

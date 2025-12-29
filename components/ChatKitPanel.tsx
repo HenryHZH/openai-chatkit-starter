@@ -14,17 +14,9 @@ import {
 import { ErrorOverlay } from "./ErrorOverlay";
 import type { ColorScheme } from "@/hooks/useColorScheme";
 
-export type FactAction = {
-  type: "save";
-  factId: string;
-  factText: string;
-};
-
 type ChatKitPanelProps = {
   theme: ColorScheme;
-  onWidgetAction: (action: FactAction) => Promise<void>;
-  onResponseEnd: () => void;
-  onThemeRequest: (scheme: ColorScheme) => void;
+  onThemeRequest?: (scheme: ColorScheme) => void;
 };
 
 type ScriptStatus = "idle" | "loading" | "ready" | "error";
@@ -45,14 +37,14 @@ const createInitialErrors = (): ErrorState => ({
   retryable: false,
 });
 
-export function ChatKitPanel(props: ChatKitPanelProps) {
+export function ChatKitPanel({ theme, onThemeRequest }: ChatKitPanelProps) {
   const isWorkflowConfigured = Boolean(
     WORKFLOW_ID && !WORKFLOW_ID.startsWith("wf_replace")
   );
 
   if (!isWorkflowConfigured) {
     return (
-      <div className="relative pb-8 flex h-[90vh] w-full rounded-2xl flex-col overflow-hidden bg-white shadow-sm transition-colors dark:bg-slate-900">
+      <div className="relative flex h-[80vh] w-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm transition-colors dark:bg-slate-900">
         <ErrorOverlay
           error={null}
           fallbackMessage="Set NEXT_PUBLIC_CHATKIT_WORKFLOW_ID in your environment to enable the assistant."
@@ -62,16 +54,15 @@ export function ChatKitPanel(props: ChatKitPanelProps) {
     );
   }
 
-  return <ConfiguredChatKitPanel {...props} />;
+  return (
+    <ConfiguredChatKitPanel theme={theme} onThemeRequest={onThemeRequest} />
+  );
 }
 
 function ConfiguredChatKitPanel({
   theme,
-  onWidgetAction,
-  onResponseEnd,
   onThemeRequest,
 }: ChatKitPanelProps) {
-  const processedFacts = useRef(new Set<string>());
   const [errors, setErrors] = useState<ErrorState>(() => createInitialErrors());
   const [isInitializingSession, setIsInitializingSession] = useState(true);
   const isMountedRef = useRef(true);
@@ -106,7 +97,6 @@ function ConfiguredChatKitPanel({
   }, [scriptStatus, scriptError, setErrorState]);
 
   const handleResetChat = useCallback(() => {
-    processedFacts.current.clear();
     setIsInitializingSession(true);
     setErrors(createInitialErrors());
     retryScript();
@@ -138,12 +128,6 @@ function ConfiguredChatKitPanel({
           },
           body: JSON.stringify({
             workflow: { id: WORKFLOW_ID },
-            chatkit_configuration: {
-              // enable attachments
-              file_upload: {
-                enabled: true,
-              },
-            },
           }),
         });
 
@@ -162,10 +146,7 @@ function ConfiguredChatKitPanel({
           try {
             data = JSON.parse(raw) as Record<string, unknown>;
           } catch (parseError) {
-            console.error(
-              "Failed to parse create-session response",
-              parseError
-            );
+            console.error("Failed to parse create-session response", parseError);
           }
         }
 
@@ -226,10 +207,6 @@ function ConfiguredChatKitPanel({
   const composerConfig = useMemo(
     () => ({
       placeholder: PLACEHOLDER_INPUT,
-      attachments: {
-        // Enable attachments
-        enabled: true,
-      },
     }),
     []
   );
@@ -239,9 +216,6 @@ function ConfiguredChatKitPanel({
     theme: themeConfig,
     startScreen: startScreenConfig,
     composer: composerConfig,
-    threadItemActions: {
-      feedback: false,
-    },
     onClientTool: async (invocation: {
       name: string;
       params: Record<string, unknown>;
@@ -249,40 +223,17 @@ function ConfiguredChatKitPanel({
       if (invocation.name === "switch_theme") {
         const requested = invocation.params.theme;
         if (requested === "light" || requested === "dark") {
-          if (isDev) {
-            console.debug("[ChatKitPanel] switch_theme", requested);
-          }
-          onThemeRequest(requested);
+          onThemeRequest?.(requested);
           return { success: true };
         }
-        return { success: false };
       }
-
-      if (invocation.name === "record_fact") {
-        const id = String(invocation.params.fact_id ?? "");
-        const text = String(invocation.params.fact_text ?? "");
-        if (!id || processedFacts.current.has(id)) {
-          return { success: true };
-        }
-        processedFacts.current.add(id);
-        void onWidgetAction({
-          type: "save",
-          factId: id,
-          factText: text.replace(/\s+/g, " ").trim(),
-        });
-        return { success: true };
-      }
-
       return { success: false };
-    },
-    onResponseEnd: () => {
-      onResponseEnd();
     },
     onResponseStart: () => {
       setErrorState({ integration: null, retryable: false });
     },
     onThreadChange: () => {
-      processedFacts.current.clear();
+      setErrorState({ integration: null });
     },
     onLog: (entry) => {
       if (isDev) {
@@ -315,9 +266,19 @@ function ConfiguredChatKitPanel({
   }
 
   return (
-    <div className="relative flex min-h-[90vh] w-full flex-1 flex-col overflow-hidden rounded-2xl bg-white pb-8 shadow-sm transition-colors dark:bg-slate-900">
-      <div className="flex items-start justify-between gap-3 border-b border-slate-200/60 bg-white/80 px-4 py-3 text-slate-700 backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/70 dark:text-slate-200">
-        <p className="text-sm font-semibold">案例报告</p>
+    <div className="relative flex min-h-[80vh] w-full flex-1 flex-col overflow-hidden rounded-2xl bg-white pb-4 shadow-sm transition-colors dark:bg-slate-900">
+      <div className="flex items-center justify-between gap-3 border-b border-slate-200/60 bg-white/80 px-4 py-3 text-slate-700 backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/70 dark:text-slate-200">
+        <div>
+          <p className="text-sm font-semibold">Chat</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Talk to your Agent Builder workflow via ChatKit.</p>
+        </div>
+        <button
+          type="button"
+          className="rounded-md border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-200 dark:hover:border-slate-700 dark:hover:bg-slate-800"
+          onClick={handleResetChat}
+        >
+          Restart
+        </button>
       </div>
       <div className="relative flex-1 min-h-0">
         <ChatKit
@@ -335,8 +296,8 @@ function ConfiguredChatKitPanel({
             blockingError || !isInitializingSession
               ? null
               : scriptStatus === "loading"
-                ? "正在加载案例助手资源..."
-                : "正在启动案例助手会话..."
+                ? "Loading ChatKit resources..."
+                : "Starting a session..."
           }
           onRetry={blockingError && errors.retryable ? handleResetChat : null}
           retryLabel="Restart chat"
@@ -375,12 +336,11 @@ function useChatKitScriptLoader(url: string): {
       if (cancelled) return;
       console.error("Failed to load ChatKit script", event);
       setStatus("error");
-      setError("无法加载 ChatKit 资源，请稍后重试。");
+      setError("Unable to load ChatKit resources. Please try again.");
     };
 
     const handleLoaded = () => {
       if (cancelled) return;
-      // Ensure the custom element is registered before marking ready
       window.customElements
         ?.whenDefined("openai-chatkit")
         .then(handleReady)
@@ -406,7 +366,6 @@ function useChatKitScriptLoader(url: string): {
       }
     };
 
-    // Always reset state for new attempt
     setStatus("loading");
     setError(null);
 
@@ -430,7 +389,6 @@ function useChatKitScriptLoader(url: string): {
     scriptEl.addEventListener("load", handleLoaded);
     scriptEl.addEventListener("error", handleError);
 
-    // Fallback: if the script loads without defining the component
     const definitionTimeout = window.setTimeout(() => {
       if (cancelled) return;
       if (!window.customElements?.get("openai-chatkit")) {
