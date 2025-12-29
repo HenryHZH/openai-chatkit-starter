@@ -16,11 +16,23 @@ export const CHATKIT_SCRIPT_URL =
 export const DOMAIN_KEY = process.env.NEXT_PUBLIC_CHATKIT_DOMAIN_KEY?.trim();
 
 export const STARTER_PROMPTS: StartScreenPrompt[] = [
+  {
+    title: "Summarize",
+    prompt: "Summarize the last message in 3 bullet points.",
+  },
+  {
+    title: "Brainstorm",
+    prompt: "Generate three feature ideas and their pros/cons.",
+  },
+  {
+    title: "Rewrite",
+    prompt: "Rewrite the previous response to be concise and friendly.",
+  },
 ];
 
-export const PLACEHOLDER_INPUT = "点击左侧上传文件，也可以直接键入案例";
+export const PLACEHOLDER_INPUT = "Ask the assistant to run your workflow";
 
-export const GREETING = "上传你的案例";
+export const GREETING = "How can I help you explore your workflow today?";
 
 export const getThemeConfig = (theme: ColorScheme): ThemeOption => ({
   color: {
@@ -35,6 +47,4 @@ export const getThemeConfig = (theme: ColorScheme): ThemeOption => ({
     },
   },
   radius: "round",
-  // Add other theme options here
-  // chatkit.studio/playground to explore config options
 });
