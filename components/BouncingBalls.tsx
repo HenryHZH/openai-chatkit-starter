@@ -15,14 +15,14 @@ const BALL_COUNT = 8;
 const GRAVITY = 900;
 const RESTITUTION = 0.82;
 const COLORS = [
-  "#4f46e5",
-  "#0ea5e9",
-  "#22c55e",
-  "#f97316",
-  "#a855f7",
-  "#06b6d4",
-  "#f59e0b",
-  "#14b8a6",
+  "#0b1f3a",
+  "#1f2937",
+  "#334155",
+  "#b5862b",
+  "#475569",
+  "#0f172a",
+  "#e0b74c",
+  "#1e293b",
 ];
 
 const clampBall = (ball: Ball, width: number, height: number) => {
@@ -139,8 +139,8 @@ export function BouncingBalls() {
       ctx.clearRect(0, 0, width, height);
 
       const backdrop = ctx.createLinearGradient(0, 0, width, height);
-      backdrop.addColorStop(0, "rgba(226, 232, 240, 0.35)");
-      backdrop.addColorStop(1, "rgba(59, 130, 246, 0.12)");
+      backdrop.addColorStop(0, "rgba(226, 232, 240, 0.42)");
+      backdrop.addColorStop(1, "rgba(148, 163, 184, 0.18)");
       ctx.fillStyle = backdrop;
       ctx.fillRect(0, 0, width, height);
 
@@ -247,7 +247,7 @@ export function BouncingBalls() {
   return (
     <div
       ref={containerRef}
-      className="relative h-[240px] w-full overflow-hidden rounded-2xl bg-gradient-to-br from-white/90 via-slate-100/70 to-sky-50/60 shadow-inner ring-1 ring-white/60 backdrop-blur-lg dark:from-slate-900/60 dark:via-slate-900/70 dark:to-slate-950/60 dark:ring-slate-800/70"
+      className="relative h-[240px] w-full overflow-hidden rounded-lg bg-gradient-to-br from-white/90 via-slate-100/70 to-sky-50/60 shadow-inner backdrop-blur-md dark:from-slate-900/60 dark:via-slate-900/70 dark:to-slate-950/60"
       style={{ touchAction: "none" }}
     >
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
