@@ -69,11 +69,13 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
   const [error, setError] = useState<string | null>(null);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
+  const [renderedSvg, setRenderedSvg] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const renderId = useRef(`mermaid-preview-${Math.random().toString(36).slice(2)}`);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mermaidRef = useRef<MermaidAPI | null>(null);
+  const pendingBindRef = useRef<((element: Element) => void) | null>(null);
   const pointerState = useRef<{
     pointerId: number | null;
     startX: number;
@@ -105,9 +107,8 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
   const renderDiagram = useCallback(
     async (diagram: string) => {
       if (!diagram.trim()) {
-        if (containerRef.current) {
-          containerRef.current.innerHTML = "";
-        }
+        setRenderedSvg("");
+        pendingBindRef.current = null;
         setError(null);
         return;
       }
@@ -120,19 +121,13 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
         });
 
         const { svg, bindFunctions } = await mermaid.render(renderId.current, diagram);
-        if (!containerRef.current) {
-          return;
-        }
-        containerRef.current.innerHTML = svg;
-        if (typeof bindFunctions === "function") {
-          bindFunctions(containerRef.current);
-        }
+        setRenderedSvg(svg);
+        pendingBindRef.current =
+          typeof bindFunctions === "function" ? bindFunctions : null;
         setError(null);
       } catch (renderError) {
-        if (!containerRef.current) {
-          return;
-        }
-        containerRef.current.innerHTML = "";
+        setRenderedSvg("");
+        pendingBindRef.current = null;
         const message =
           renderError instanceof Error
             ? renderError.message
@@ -204,6 +199,18 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
       cancelled = true;
     };
   }, [effectiveCode, isFullscreen, renderDiagram]);
+
+  useEffect(() => {
+    if (!renderedSvg || !containerRef.current) {
+      return;
+    }
+
+    const bindFunction = pendingBindRef.current;
+    if (typeof bindFunction === "function") {
+      bindFunction(containerRef.current);
+      pendingBindRef.current = null;
+    }
+  }, [renderedSvg]);
 
   const scale = useMemo(() => Math.max(1, zoom / 100), [zoom]);
 
@@ -284,7 +291,13 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
           cursor: isPanning ? "grabbing" : "grab",
         }}
       >
-        <div ref={containerRef} className="mermaid" aria-live="polite" aria-label="Mermaid 预览" />
+        <div
+          ref={containerRef}
+          className="mermaid"
+          aria-live="polite"
+          aria-label="Mermaid 预览"
+          dangerouslySetInnerHTML={{ __html: renderedSvg }}
+        />
       </div>
       {error ? (
         <p className="mt-3 text-sm text-rose-600 dark:text-rose-400">{error}</p>
