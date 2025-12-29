@@ -9,7 +9,6 @@ import {
   CREATE_SESSION_ENDPOINT,
   WORKFLOW_ID,
   CHATKIT_SCRIPT_URL,
-  DOMAIN_KEY,
   getThemeConfig,
 } from "@/lib/config";
 import { ErrorOverlay } from "./ErrorOverlay";
@@ -237,7 +236,6 @@ function ConfiguredChatKitPanel({
 
   const chatkit = useChatKit({
     api: { getClientSecret },
-    domainKey: DOMAIN_KEY,
     theme: themeConfig,
     startScreen: startScreenConfig,
     composer: composerConfig,
