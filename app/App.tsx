@@ -40,8 +40,8 @@ export default function App() {
           </div>
         </header>
 
-        <section className="relative overflow-hidden rounded-xl border border-slate-200 bg-white p-6 shadow-lg backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900">
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-100/70 via-white/0 to-slate-200/40 dark:from-slate-800/40" />
+        <section className="relative overflow-hidden rounded-lg border border-slate-200 bg-white p-6 shadow-lg backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-100/70 via-white/0 to-slate-200/30 dark:from-slate-800/30" />
           <div className="relative min-h-[260px]">
             <BouncingBalls />
           </div>
@@ -50,9 +50,9 @@ export default function App() {
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.05fr_1.15fr]">
           <MermaidPlayground scheme={scheme} />
 
-          <div className="relative rounded-xl border border-slate-200 bg-white p-3 shadow-xl dark:border-slate-800 dark:bg-slate-900">
+          <div className="relative rounded-lg border border-slate-200 bg-white p-3 shadow-xl dark:border-slate-800 dark:bg-slate-900">
             <div className="absolute inset-x-10 top-0 h-20 rounded-full bg-gradient-to-b from-slate-100/80 via-white/0 to-white/0 blur-2xl dark:from-slate-800/60" />
-            <div className="relative rounded-lg bg-slate-50 p-4 shadow-sm ring-1 ring-slate-200 dark:bg-slate-950/60 dark:ring-slate-800">
+            <div className="relative rounded-md bg-slate-50 p-4 shadow-sm dark:bg-slate-950/60">
               <ChatKitPanel
                 theme={scheme}
                 onWidgetAction={handleWidgetAction}

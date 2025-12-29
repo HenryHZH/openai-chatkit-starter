@@ -260,7 +260,7 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
   }, []);
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-white/70 bg-white/80 p-6 shadow-2xl backdrop-blur-xl ring-1 ring-slate-200/70 dark:border-slate-800/60 dark:bg-slate-900/80 dark:ring-slate-800/80">
+    <section className="relative overflow-hidden rounded-xl border border-slate-200 bg-white/90 p-6 shadow-2xl backdrop-blur-lg dark:border-slate-800 dark:bg-slate-900/85">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-24 rounded-full bg-gradient-to-b from-slate-100/70 via-white/0 to-white/0 blur-2xl dark:from-slate-800/60" />
       <div className="relative space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -285,7 +285,7 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
 
         <div className="space-y-6">
           {!isInputCollapsed ? (
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-inner ring-1 ring-slate-200/70 dark:border-slate-800 dark:bg-slate-900 dark:ring-slate-800/80">
+            <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-inner dark:border-slate-800 dark:bg-slate-900">
               <textarea
                 className="w-full resize-none bg-transparent px-4 py-3 font-mono text-sm text-slate-800 outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:text-slate-100"
                 rows={2}
@@ -328,7 +328,7 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
               </div>
             </div>
             <div
-              className="relative min-h-[320px] overflow-hidden rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-inner ring-1 ring-slate-200/70 dark:border-slate-800 dark:bg-slate-900/80 dark:ring-slate-800/80"
+              className="relative min-h-[320px] overflow-hidden rounded-lg border border-slate-200 bg-white/90 p-4 shadow-inner dark:border-slate-800 dark:bg-slate-900/80"
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={endPointerTracking}
