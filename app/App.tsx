@@ -30,14 +30,14 @@ export default function App() {
       <div className="relative mx-auto flex min-h-screen w-full max-w-screen-2xl flex-col gap-10 px-6 py-14 md:px-10">
         <header className="max-w-3xl space-y-4">
           <span className="inline-flex items-center gap-2 rounded-full bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 shadow-sm ring-1 ring-slate-200/60 backdrop-blur dark:bg-slate-900/70 dark:text-slate-300 dark:ring-slate-800/60">
-            AI 案例助手
+            可视化案例分析器
           </span>
           <div className="space-y-3">
             <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">
-              输入你的案例
+              案例分析专家
             </h1>
             <p className="text-lg text-slate-600 dark:text-slate-300">
-              你可以上传完整的案例，也可以提供案例名/案号，我将为你介绍案例。
+              上传完整的裁判文书/案卷，抑或直接键入案例，专家将在5分钟内完成分析
             </p>
           </div>
         </header>
