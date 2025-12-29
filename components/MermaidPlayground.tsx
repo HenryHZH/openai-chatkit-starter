@@ -160,7 +160,6 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
         }
 
         if (!normalized) {
-          setClipboardCode("");
           return;
         }
 
