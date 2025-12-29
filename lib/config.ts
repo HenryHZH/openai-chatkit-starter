@@ -17,15 +17,15 @@ export const DOMAIN_KEY = process.env.NEXT_PUBLIC_CHATKIT_DOMAIN_KEY?.trim();
 
 export const STARTER_PROMPTS: StartScreenPrompt[] = [
   {
-    title: "Summarize",
+    label: "Summarize",
     prompt: "Summarize the last message in 3 bullet points.",
   },
   {
-    title: "Brainstorm",
+    label: "Brainstorm",
     prompt: "Generate three feature ideas and their pros/cons.",
   },
   {
-    title: "Rewrite",
+    label: "Rewrite",
     prompt: "Rewrite the previous response to be concise and friendly.",
   },
 ];
