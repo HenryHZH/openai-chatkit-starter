@@ -9,6 +9,7 @@ import {
   CREATE_SESSION_ENDPOINT,
   WORKFLOW_ID,
   CHATKIT_SCRIPT_URL,
+  DOMAIN_KEY,
   getThemeConfig,
 } from "@/lib/config";
 import { ErrorOverlay } from "./ErrorOverlay";
@@ -236,6 +237,7 @@ function ConfiguredChatKitPanel({
 
   const chatkit = useChatKit({
     api: { getClientSecret },
+    domainKey: DOMAIN_KEY,
     theme: themeConfig,
     startScreen: startScreenConfig,
     composer: composerConfig,
@@ -284,10 +286,20 @@ function ConfiguredChatKitPanel({
     onThreadChange: () => {
       processedFacts.current.clear();
     },
+    onLog: (entry) => {
+      if (isDev) {
+        console.info("[ChatKitPanel] chatkit.log", entry);
+      }
+    },
     onError: ({ error }: { error: unknown }) => {
-      // Note that Chatkit UI handles errors for your users.
-      // Thus, your app code doesn't need to display errors on UI.
+      const detail =
+        error instanceof Error
+          ? error.message
+          : typeof error === "string"
+            ? error
+            : "Unknown ChatKit error";
       console.error("ChatKit error", error);
+      setErrorState({ integration: detail, retryable: false });
     },
   });
 

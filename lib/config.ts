@@ -13,6 +13,8 @@ export const CHATKIT_SCRIPT_URL =
   process.env.NEXT_PUBLIC_CHATKIT_SCRIPT_URL?.trim() ??
   "https://cdn.platform.openai.com/deployments/chatkit/chatkit.js";
 
+export const DOMAIN_KEY = process.env.NEXT_PUBLIC_CHATKIT_DOMAIN_KEY?.trim();
+
 export const STARTER_PROMPTS: StartScreenPrompt[] = [
 ];
 
