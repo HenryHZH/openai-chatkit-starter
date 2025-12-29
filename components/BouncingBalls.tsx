@@ -15,15 +15,17 @@ const BALL_COUNT = 8;
 const GRAVITY = 900;
 const RESTITUTION = 0.82;
 const COLORS = [
-  "#0b1f3a",
-  "#1f2937",
-  "#334155",
-  "#b5862b",
-  "#475569",
-  "#0f172a",
-  "#e0b74c",
-  "#1e293b",
+  "#ffd6e8",
+  "#d8e2dc",
+  "#ffe5b9",
+  "#e8f9fd",
+  "#d6f6ff",
+  "#d4c1ec",
+  "#fbe7c6",
+  "#c8f7c5",
 ];
+
+const RADII = [16, 12, 18, 14, 20, 13, 22, 15];
 
 const clampBall = (ball: Ball, width: number, height: number) => {
   ball.x = Math.min(Math.max(ball.x, ball.radius), Math.max(ball.radius, width - ball.radius));
@@ -32,7 +34,7 @@ const clampBall = (ball: Ball, width: number, height: number) => {
 
 const createBalls = (width: number, height: number) =>
   Array.from({ length: BALL_COUNT }, (_, index) => {
-    const radius = 12 + (index % 3) * 2;
+    const radius = RADII[index % RADII.length];
     return {
       x: (width / (BALL_COUNT + 1)) * (index + 1),
       y: Math.max(radius + 12, height * 0.35 + Math.random() * height * 0.2),
