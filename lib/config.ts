@@ -17,11 +17,11 @@ export const getThemeConfig = (theme: ColorScheme): ThemeOption => ({
     grayscale: {
       hue: 220,
       tint: 4,
-      shade: theme === "dark" ? -2 : -5,
+      shade: theme === "dark" ? -2 : -4,
     },
     accent: {
       primary: theme === "dark" ? "#cbd5e1" : "#0b1f3a",
-      level: 0.8,
+      level: 2,
     },
   },
   radius: "soft",
