@@ -22,10 +22,10 @@ export default function App() {
   }, []);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-50">
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-0 mx-auto h-[460px] max-w-5xl rounded-full bg-gradient-to-b from-indigo-300/40 via-sky-200/30 to-transparent blur-3xl dark:from-indigo-500/20 dark:via-sky-500/20 animated-orb" />
-      <div className="pointer-events-none absolute bottom-[-10%] right-[-10%] z-0 h-80 w-80 rounded-full bg-gradient-to-tr from-sky-400/20 via-indigo-400/10 to-transparent blur-3xl animated-orb-delay" />
-      <div className="pointer-events-none absolute left-10 top-1/3 z-0 h-28 w-28 rounded-full bg-gradient-to-br from-indigo-300/20 via-sky-300/20 to-transparent blur-3xl drift-wave" />
+    <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-slate-100 to-slate-200 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-50">
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-0 mx-auto h-[460px] max-w-5xl rounded-full bg-gradient-to-b from-blue-200/35 via-cyan-200/25 to-transparent blur-3xl dark:from-blue-500/20 dark:via-cyan-500/15 animated-orb" />
+      <div className="pointer-events-none absolute bottom-[-10%] right-[-10%] z-0 h-80 w-80 rounded-full bg-gradient-to-tr from-cyan-400/15 via-blue-400/10 to-transparent blur-3xl animated-orb-delay" />
+      <div className="pointer-events-none absolute left-10 top-1/3 z-0 h-28 w-28 rounded-full bg-gradient-to-br from-blue-300/20 via-cyan-300/15 to-transparent blur-3xl drift-wave" />
 
       <div className="relative mx-auto flex min-h-screen w-full max-w-screen-2xl flex-col gap-10 px-6 py-14 md:px-10">
         <header className="max-w-3xl space-y-3">
@@ -47,9 +47,9 @@ export default function App() {
         <div className="grid grid-cols-1 items-stretch gap-6 xl:grid-cols-[1.05fr_1.15fr]">
           <MermaidPlayground scheme={scheme} />
 
-          <div className="relative rounded-3xl border border-white/70 bg-white/70 p-2 shadow-2xl backdrop-blur-xl ring-1 ring-slate-200/70 dark:border-slate-800/60 dark:bg-slate-900/70 dark:ring-slate-800/80">
-            <div className="absolute inset-x-10 top-0 h-24 rounded-full bg-gradient-to-b from-slate-100/60 via-white/0 to-white/0 blur-2xl dark:from-slate-800/50" />
-            <div className="relative rounded-2xl bg-gradient-to-br from-white/90 to-slate-100/70 p-4 shadow-inner dark:from-slate-900/80 dark:to-slate-950/60">
+          <div className="relative rounded-3xl border border-white/70 bg-white/75 p-2 shadow-2xl backdrop-blur-xl ring-1 ring-slate-200/70 dark:border-slate-800/60 dark:bg-slate-900/80 dark:ring-slate-800/80">
+            <div className="absolute inset-x-10 top-0 h-24 rounded-full bg-gradient-to-b from-blue-50/70 via-white/0 to-white/0 blur-2xl dark:from-slate-800/40" />
+            <div className="relative rounded-2xl bg-gradient-to-br from-white/95 via-slate-50/70 to-blue-50/60 p-4 shadow-inner dark:from-slate-900/85 dark:via-slate-900/70 dark:to-slate-950/60">
               <ChatKitPanel
                 theme={scheme}
                 onWidgetAction={handleWidgetAction}
