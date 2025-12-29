@@ -28,16 +28,20 @@ export default function App() {
       <div className="pointer-events-none absolute left-10 top-1/3 z-0 h-28 w-28 rounded-full bg-gradient-to-br from-indigo-300/20 via-sky-300/20 to-transparent blur-3xl drift-wave" />
 
       <div className="relative mx-auto flex min-h-screen w-full max-w-screen-2xl flex-col gap-10 px-6 py-14 md:px-10">
-        <header className="max-w-3xl space-y-3">
-          <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">
-            案例分析专家
-          </h1>
-          <p className="text-lg text-slate-600 dark:text-slate-300">
-            请在右下方输入案例，也可以上传完整的裁判文书或案卷，专家将在5分钟内完成分析。
-          </p>
+        <header className="max-w-4xl">
+          <div className="relative inline-flex items-center gap-4 overflow-hidden rounded-2xl bg-white/80 px-6 py-5 shadow-xl backdrop-blur-md ring-1 ring-white/60 dark:bg-slate-900/75 dark:ring-slate-800/70">
+            <span className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-indigo-500 via-sky-500 to-emerald-400" aria-hidden />
+            <div className="h-12 w-12 shrink-0 rounded-xl bg-gradient-to-br from-indigo-500 via-sky-500 to-emerald-400 opacity-90 shadow-lg shadow-indigo-500/30" />
+            <div className="relative">
+              <h1 className="text-4xl font-semibold leading-tight tracking-tight text-slate-900 drop-shadow-sm sm:text-5xl dark:text-slate-50">
+                案例分析专家
+              </h1>
+              <span className="mt-3 block h-[3px] w-20 rounded-full bg-gradient-to-r from-indigo-500 via-sky-500 to-emerald-400" aria-hidden />
+            </div>
+          </div>
         </header>
 
-        <section className="relative overflow-hidden rounded-3xl border border-white/60 bg-white/70 p-6 shadow-lg backdrop-blur-lg ring-1 ring-slate-200/70 dark:border-slate-800/60 dark:bg-slate-900/70 dark:ring-slate-800/80">
+        <section className="relative overflow-hidden rounded-3xl bg-white/80 p-6 shadow-xl backdrop-blur-lg dark:bg-slate-900/70">
           <div className="pointer-events-none absolute inset-0 shimmer-surface" />
           <div className="relative min-h-[260px]">
             <BouncingBalls />
