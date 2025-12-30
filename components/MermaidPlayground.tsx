@@ -276,9 +276,11 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
   const PreviewCanvas = ({
     className,
     containerRef,
+    isActive = true,
   }: {
     className?: string;
     containerRef: typeof inlineContainerRef;
+    isActive?: boolean;
   }) => (
     <div
       className={
@@ -303,7 +305,7 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
           className="mermaid"
           aria-live="polite"
           aria-label="Mermaid 预览"
-          dangerouslySetInnerHTML={{ __html: renderedSvg }}
+          dangerouslySetInnerHTML={{ __html: isActive ? renderedSvg : "" }}
         />
       </div>
       {error ? (
@@ -387,7 +389,10 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
                 </button>
               </div>
             </div>
-            <PreviewCanvas containerRef={inlineContainerRef} />
+            <PreviewCanvas
+              containerRef={inlineContainerRef}
+              isActive={!isFullscreen}
+            />
           </div>
         </div>
       </div>
@@ -438,6 +443,7 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
                   <PreviewCanvas
                     className="relative h-full min-h-[480px] w-full rounded-xl border border-slate-700 bg-slate-900/70 p-6 shadow-2xl"
                     containerRef={fullscreenContainerRef}
+                    isActive={isFullscreen}
                   />
                 </div>
               </div>
