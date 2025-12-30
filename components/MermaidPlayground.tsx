@@ -73,7 +73,8 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   const renderId = useRef(`mermaid-preview-${Math.random().toString(36).slice(2)}`);
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const inlineContainerRef = useRef<HTMLDivElement | null>(null);
+  const fullscreenContainerRef = useRef<HTMLDivElement | null>(null);
   const mermaidRef = useRef<MermaidAPI | null>(null);
   const pendingBindRef = useRef<((element: Element) => void) | null>(null);
   const pointerState = useRef<{
@@ -201,16 +202,20 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
   }, [effectiveCode, isFullscreen, renderDiagram]);
 
   useEffect(() => {
-    if (!renderedSvg || !containerRef.current) {
+    const activeContainer = isFullscreen
+      ? fullscreenContainerRef.current
+      : inlineContainerRef.current;
+
+    if (!renderedSvg || !activeContainer) {
       return;
     }
 
     const bindFunction = pendingBindRef.current;
     if (typeof bindFunction === "function") {
-      bindFunction(containerRef.current);
+      bindFunction(activeContainer);
       pendingBindRef.current = null;
     }
-  }, [renderedSvg]);
+  }, [isFullscreen, renderedSvg]);
 
   const scale = useMemo(() => Math.max(1, zoom / 100), [zoom]);
 
@@ -270,8 +275,10 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
 
   const PreviewCanvas = ({
     className,
+    containerRef,
   }: {
     className?: string;
+    containerRef: typeof inlineContainerRef;
   }) => (
     <div
       className={
@@ -380,7 +387,7 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
                 </button>
               </div>
             </div>
-            <PreviewCanvas />
+            <PreviewCanvas containerRef={inlineContainerRef} />
           </div>
         </div>
       </div>
@@ -428,7 +435,10 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
                   </div>
                 </div>
                 <div className="flex-1 overflow-hidden px-6 pb-8">
-                  <PreviewCanvas className="relative h-full min-h-[480px] w-full rounded-xl border border-slate-700 bg-slate-900/70 p-6 shadow-2xl" />
+                  <PreviewCanvas
+                    className="relative h-full min-h-[480px] w-full rounded-xl border border-slate-700 bg-slate-900/70 p-6 shadow-2xl"
+                    containerRef={fullscreenContainerRef}
+                  />
                 </div>
               </div>
             </div>,
