@@ -50,9 +50,9 @@ export default function App() {
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.05fr_1.15fr]">
           <MermaidPlayground scheme={scheme} />
 
-          <div className="relative rounded-lg border border-slate-200 bg-white p-3 shadow-xl dark:border-slate-800 dark:bg-slate-900">
+          <div className="relative rounded-lg bg-white p-3 shadow-xl dark:bg-slate-900">
             <div className="absolute inset-x-10 top-0 h-20 rounded-full bg-gradient-to-b from-slate-100/80 via-white/0 to-white/0 blur-2xl dark:from-slate-800/60" />
-            <div className="relative rounded-md bg-slate-50 p-4 shadow-sm dark:bg-slate-950/60">
+            <div className="relative p-4">
               <ChatKitPanel
                 theme={scheme}
                 onWidgetAction={handleWidgetAction}
