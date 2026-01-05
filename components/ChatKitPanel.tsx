@@ -356,10 +356,10 @@ function ConfiguredChatKitPanel({
 
   return (
     <div className="relative pb-8 flex h-[90vh] w-full rounded-lg flex-col overflow-hidden bg-white shadow-sm transition-colors dark:bg-slate-900">
-      <div className="flex items-start justify-between gap-3 border-b border-slate-200/60 bg-white/80 px-4 py-3 text-slate-700 backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/70 dark:text-slate-200">
-        <p className="text-sm font-semibold">案例报告</p>
+      <div className="flex items-start justify-between gap-3 border-b border-slate-200/60 bg-white/80 px-6 py-4 text-slate-700 backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/70 dark:text-slate-200">
+        <p className="text-base font-semibold leading-6">案例报告</p>
       </div>
-      <div className="relative flex-1 min-h-0">
+      <div className="relative flex-1 min-h-0 px-5 pb-6 pt-4">
         <ChatKit
           key={widgetInstanceKey}
           control={chatkit.control}

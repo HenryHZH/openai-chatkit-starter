@@ -40,26 +40,22 @@ export default function App() {
           </div>
         </header>
 
-        <section className="relative overflow-hidden rounded-lg border border-slate-200 bg-white p-6 shadow-lg backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900">
+        <section className="relative overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-100/70 via-white/0 to-slate-200/30 dark:from-slate-800/30" />
-          <div className="relative min-h-[260px]">
-            <BouncingBalls />
-          </div>
+          <BouncingBalls />
         </section>
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.05fr_1.15fr]">
           <MermaidPlayground scheme={scheme} />
 
-          <div className="relative rounded-lg bg-white p-3 shadow-xl dark:bg-slate-900">
+          <div className="relative rounded-lg bg-white shadow-xl dark:bg-slate-900">
             <div className="absolute inset-x-10 top-0 h-20 rounded-full bg-gradient-to-b from-slate-100/80 via-white/0 to-white/0 blur-2xl dark:from-slate-800/60" />
-            <div className="relative p-4">
-              <ChatKitPanel
-                theme={scheme}
-                onWidgetAction={handleWidgetAction}
-                onResponseEnd={handleResponseEnd}
-                onThemeRequest={setScheme}
-              />
-            </div>
+            <ChatKitPanel
+              theme={scheme}
+              onWidgetAction={handleWidgetAction}
+              onResponseEnd={handleResponseEnd}
+              onThemeRequest={setScheme}
+            />
           </div>
         </div>
 
