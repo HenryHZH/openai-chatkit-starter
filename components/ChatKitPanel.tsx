@@ -50,7 +50,7 @@ export function ChatKitPanel(props: ChatKitPanelProps) {
 
   if (!isWorkflowConfigured) {
     return (
-      <div className="relative pb-8 flex h-[90vh] w-full rounded-2xl flex-col overflow-hidden bg-white shadow-sm transition-colors dark:bg-slate-900">
+      <div className="relative pb-8 flex h-[90vh] w-full rounded-lg flex-col overflow-hidden bg-white shadow-sm transition-colors dark:bg-slate-900">
         <ErrorOverlay
           error={null}
           fallbackMessage="Set NEXT_PUBLIC_CHATKIT_WORKFLOW_ID in your environment to enable the assistant."
@@ -355,7 +355,7 @@ function ConfiguredChatKitPanel({
   }
 
   return (
-    <div className="relative pb-8 flex h-[90vh] w-full rounded-2xl flex-col overflow-hidden bg-white shadow-sm transition-colors dark:bg-slate-900">
+    <div className="relative pb-8 flex h-[90vh] w-full rounded-lg flex-col overflow-hidden bg-white shadow-sm transition-colors dark:bg-slate-900">
       <div className="flex items-start justify-between gap-3 border-b border-slate-200/60 bg-white/80 px-4 py-3 text-slate-700 backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/70 dark:text-slate-200">
         <p className="text-sm font-semibold">案例报告</p>
       </div>
