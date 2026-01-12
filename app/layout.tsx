@@ -5,6 +5,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "案例分析专家",
   description: "Demo of ChatKit with hosted workflow",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
