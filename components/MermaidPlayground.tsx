@@ -315,7 +315,7 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ code: sourceCode }),
+        body: JSON.stringify({ code: sourceCode, renderError: error ?? undefined }),
       });
 
       const payload = (await response.json().catch(() => null)) as {
@@ -339,7 +339,7 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
     } finally {
       setIsFixingSyntax(false);
     }
-  }, [effectiveCode, isFixingSyntax]);
+  }, [effectiveCode, error, isFixingSyntax]);
 
   const PreviewCanvas = ({
     className,
