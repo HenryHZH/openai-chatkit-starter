@@ -71,6 +71,8 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
   const [isPanning, setIsPanning] = useState(false);
   const [renderedSvg, setRenderedSvg] = useState("");
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isFixingSyntax, setIsFixingSyntax] = useState(false);
+  const [fixError, setFixError] = useState<string | null>(null);
 
   const renderId = useRef(`mermaid-preview-${Math.random().toString(36).slice(2)}`);
   const inlineContainerRef = useRef<HTMLDivElement | null>(null);
@@ -273,6 +275,45 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
     setZoom(100);
   }, []);
 
+  const handleFixSyntax = useCallback(async () => {
+    const sourceCode = effectiveCode.trim();
+    if (!sourceCode || isFixingSyntax) {
+      return;
+    }
+
+    setIsFixingSyntax(true);
+    setFixError(null);
+
+    try {
+      const response = await fetch("/api/mermaid-fix", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ code: sourceCode }),
+      });
+
+      const payload = (await response.json().catch(() => null)) as {
+        fixedCode?: string;
+        error?: string;
+      } | null;
+
+      if (!response.ok || !payload?.fixedCode) {
+        setFixError(payload?.error ?? "修复失败，请稍后重试");
+        return;
+      }
+
+      setInputCode(payload.fixedCode);
+    } catch (requestError) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("一键修复失败", requestError);
+      }
+      setFixError("网络异常，暂时无法修复");
+    } finally {
+      setIsFixingSyntax(false);
+    }
+  }, [effectiveCode, isFixingSyntax]);
+
   const PreviewCanvas = ({
     className,
     containerRef,
@@ -330,6 +371,14 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
             ) : null}
             <button
               type="button"
+              className="rounded-full bg-indigo-600 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-white ring-1 ring-indigo-500/70 transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={handleFixSyntax}
+              disabled={!effectiveCode.trim() || isFixingSyntax}
+            >
+              {isFixingSyntax ? "修复中..." : "一键修复"}
+            </button>
+            <button
+              type="button"
               className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700/80"
               onClick={() => setIsInputCollapsed((current) => !current)}
             >
@@ -339,6 +388,9 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
         </div>
 
         <div className="space-y-6">
+          {fixError ? (
+            <p className="text-sm text-rose-600 dark:text-rose-400">{fixError}</p>
+          ) : null}
           {!isInputCollapsed ? (
             <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-inner dark:border-slate-800 dark:bg-slate-900">
               <textarea
