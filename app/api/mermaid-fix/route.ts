@@ -1,5 +1,5 @@
 const DEFAULT_OPENAI_BASE_URL = "https://api.openai.com/v1";
-const DEFAULT_MODEL = "gpt-5.1";
+const DEFAULT_MODEL = "gpt-5.2";
 
 const MERMAID_FIX_PROMPT = `你是 Mermaid 语法修复器。
 任务：修复输入 Mermaid 图表中的语法错误，让它可以被 Mermaid 正常解析。
