@@ -67,6 +67,7 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
   const [isInputCollapsed, setIsInputCollapsed] = useState(true);
   const [zoom, setZoom] = useState(100);
   const [error, setError] = useState<string | null>(null);
+  const [errorSourceCode, setErrorSourceCode] = useState<string | null>(null);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const [renderedSvg, setRenderedSvg] = useState("");
@@ -113,11 +114,14 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
 
   const renderDiagram = useCallback(
     async (diagram: string) => {
-      if (!diagram.trim()) {
+      const normalizedDiagram = diagram.trim();
+
+      if (!normalizedDiagram) {
         setRenderedSvg("");
         setRenderedSourceCode("");
         pendingBindRef.current = null;
         setError(null);
+        setErrorSourceCode(null);
         return;
       }
       try {
@@ -128,12 +132,16 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
           theme: scheme === "dark" ? "dark" : "default",
         });
 
-        const { svg, bindFunctions } = await mermaid.render(renderId.current, diagram);
+        const { svg, bindFunctions } = await mermaid.render(
+          renderId.current,
+          normalizedDiagram
+        );
         setRenderedSvg(svg);
-        setRenderedSourceCode(diagram);
+        setRenderedSourceCode(normalizedDiagram);
         pendingBindRef.current =
           typeof bindFunctions === "function" ? bindFunctions : null;
         setError(null);
+        setErrorSourceCode(null);
       } catch (renderError) {
         setRenderedSvg("");
         setRenderedSourceCode("");
@@ -143,6 +151,7 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
             ? renderError.message
             : "无法渲染当前的图表";
         setError(message);
+        setErrorSourceCode(normalizedDiagram);
       }
     },
     [loadMermaid, scheme]
@@ -310,12 +319,15 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
     setLastFixedCode(null);
 
     try {
+      const matchedRenderError =
+        error && errorSourceCode === sourceCode ? error : undefined;
+
       const response = await fetch("/api/mermaid-fix", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ code: sourceCode, renderError: error ?? undefined }),
+        body: JSON.stringify({ code: sourceCode, renderError: matchedRenderError }),
       });
 
       const payload = (await response.json().catch(() => null)) as {
@@ -339,7 +351,7 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
     } finally {
       setIsFixingSyntax(false);
     }
-  }, [effectiveCode, error, isFixingSyntax]);
+  }, [effectiveCode, error, errorSourceCode, isFixingSyntax]);
 
   const PreviewCanvas = ({
     className,
