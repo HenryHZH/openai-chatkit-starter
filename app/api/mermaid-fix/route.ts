@@ -16,6 +16,13 @@ type FixRequestBody = {
 
 type OpenAIResponse = {
   output_text?: string;
+  output?: Array<{
+    type?: string;
+    content?: Array<{
+      type?: string;
+      text?: string;
+    }>;
+  }>;
 };
 
 export const runtime = "nodejs";
@@ -78,7 +85,7 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    const fixedCode = result.output_text?.trim();
+    const fixedCode = extractFixedCode(result);
     if (!fixedCode) {
       return jsonResponse({ error: "Model returned empty result" }, 502);
     }
@@ -88,6 +95,32 @@ export async function POST(request: Request): Promise<Response> {
     console.error("Mermaid fix API error", error);
     return jsonResponse({ error: "Unexpected error while fixing Mermaid" }, 500);
   }
+}
+
+function extractFixedCode(result: OpenAIResponse): string | null {
+  const outputText = result.output_text?.trim();
+  if (outputText) {
+    return outputText;
+  }
+
+  for (const item of result.output ?? []) {
+    if (item.type !== "message") {
+      continue;
+    }
+
+    for (const content of item.content ?? []) {
+      if (content.type !== "output_text") {
+        continue;
+      }
+
+      const text = content.text?.trim();
+      if (text) {
+        return text;
+      }
+    }
+  }
+
+  return null;
 }
 
 function jsonResponse(payload: Record<string, unknown>, status: number): Response {
