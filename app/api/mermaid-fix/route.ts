@@ -7,11 +7,13 @@ const MERMAID_FIX_PROMPT = `你是 Mermaid 语法修复器。
 严格要求：
 1) 只修复语法错误，不改变图表语义与内容。
 2) 保留原有节点文案、连线关系、方向、子图结构、样式意图。
-3) 不添加解释，不添加 Markdown 代码块标记。
-4) 只输出修复后的 Mermaid 原文。`;
+3) 如果提供了渲染器报错信息，请优先据此修复对应语法问题。
+4) 不添加解释，不添加 Markdown 代码块标记。
+5) 只输出修复后的 Mermaid 原文。`;
 
 type FixRequestBody = {
   code?: string;
+  renderError?: string;
 };
 
 type OpenAIResponse = {
@@ -35,6 +37,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const parsed = (await request.json().catch(() => null)) as FixRequestBody | null;
   const code = parsed?.code?.trim();
+  const renderError = parsed?.renderError?.trim();
   if (!code) {
     return jsonResponse({ error: "Missing mermaid code" }, 400);
   }
@@ -62,7 +65,7 @@ export async function POST(request: Request): Promise<Response> {
             content: [
               {
                 type: "input_text",
-                text: `请修复以下 Mermaid 语法，仅输出修复后的 Mermaid：\n\n${code}`,
+                text: buildFixUserMessage(code, renderError),
               },
             ],
           },
@@ -95,6 +98,22 @@ export async function POST(request: Request): Promise<Response> {
     console.error("Mermaid fix API error", error);
     return jsonResponse({ error: "Unexpected error while fixing Mermaid" }, 500);
   }
+}
+
+function buildFixUserMessage(code: string, renderError?: string): string {
+  if (!renderError) {
+    return `请修复以下 Mermaid 语法，仅输出修复后的 Mermaid：\n\n${code}`;
+  }
+
+  return [
+    "请修复以下 Mermaid 语法，仅输出修复后的 Mermaid。",
+    "",
+    "渲染器报错（可作为修复依据）：",
+    renderError,
+    "",
+    "待修复 Mermaid：",
+    code,
+  ].join("\n");
 }
 
 function extractFixedCode(result: OpenAIResponse): string | null {
