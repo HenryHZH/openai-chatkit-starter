@@ -73,6 +73,10 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isFixingSyntax, setIsFixingSyntax] = useState(false);
   const [fixError, setFixError] = useState<string | null>(null);
+  const [renderedSourceCode, setRenderedSourceCode] = useState("");
+  const [pendingFixedCode, setPendingFixedCode] = useState<string | null>(null);
+  const [lastFixedCode, setLastFixedCode] = useState<string | null>(null);
+  const [renderNonce, setRenderNonce] = useState(0);
 
   const renderId = useRef(`mermaid-preview-${Math.random().toString(36).slice(2)}`);
   const inlineContainerRef = useRef<HTMLDivElement | null>(null);
@@ -111,6 +115,7 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
     async (diagram: string) => {
       if (!diagram.trim()) {
         setRenderedSvg("");
+        setRenderedSourceCode("");
         pendingBindRef.current = null;
         setError(null);
         return;
@@ -125,11 +130,13 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
 
         const { svg, bindFunctions } = await mermaid.render(renderId.current, diagram);
         setRenderedSvg(svg);
+        setRenderedSourceCode(diagram);
         pendingBindRef.current =
           typeof bindFunctions === "function" ? bindFunctions : null;
         setError(null);
       } catch (renderError) {
         setRenderedSvg("");
+        setRenderedSourceCode("");
         pendingBindRef.current = null;
         const message =
           renderError instanceof Error
@@ -201,7 +208,23 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
     return () => {
       cancelled = true;
     };
-  }, [effectiveCode, isFullscreen, renderDiagram]);
+  }, [effectiveCode, isFullscreen, renderDiagram, renderNonce]);
+
+  useEffect(() => {
+    if (!pendingFixedCode) {
+      return;
+    }
+
+    if (error) {
+      setPendingFixedCode(null);
+      return;
+    }
+
+    if (renderedSvg && renderedSourceCode === pendingFixedCode) {
+      setLastFixedCode(pendingFixedCode);
+      setPendingFixedCode(null);
+    }
+  }, [error, pendingFixedCode, renderedSourceCode, renderedSvg]);
 
   useEffect(() => {
     const activeContainer = isFullscreen
@@ -283,6 +306,8 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
 
     setIsFixingSyntax(true);
     setFixError(null);
+    setPendingFixedCode(null);
+    setLastFixedCode(null);
 
     try {
       const response = await fetch("/api/mermaid-fix", {
@@ -304,6 +329,8 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
       }
 
       setInputCode(payload.fixedCode);
+      setPendingFixedCode(payload.fixedCode);
+      setRenderNonce((current) => current + 1);
     } catch (requestError) {
       if (process.env.NODE_ENV !== "production") {
         console.warn("一键修复失败", requestError);
@@ -373,9 +400,15 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
               type="button"
               className="rounded-full bg-indigo-600 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-white ring-1 ring-indigo-500/70 transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
               onClick={handleFixSyntax}
-              disabled={!effectiveCode.trim() || isFixingSyntax}
+              disabled={!effectiveCode.trim() || isFixingSyntax || Boolean(pendingFixedCode)}
             >
-              {isFixingSyntax ? "修复中..." : "一键修复"}
+              {isFixingSyntax
+                ? "修复中..."
+                : pendingFixedCode
+                  ? "渲染中..."
+                  : lastFixedCode && lastFixedCode === effectiveCode
+                    ? "已修复"
+                    : "一键修复"}
             </button>
             <button
               type="button"
@@ -398,7 +431,11 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
                 rows={2}
                 style={{ maxHeight: "5.5rem" }}
                 value={inputCode}
-                onChange={(event) => setInputCode(event.target.value)}
+                onChange={(event) => {
+                  setInputCode(event.target.value);
+                  setLastFixedCode(null);
+                  setPendingFixedCode(null);
+                }}
                 spellCheck={false}
                 placeholder="复制或输入后立即渲染"
               />
