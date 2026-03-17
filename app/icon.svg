@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#FFFFFF"/>
-  <rect x="44" y="44" width="424" height="424" rx="56" fill="none" stroke="#0B2A5B" stroke-width="28"/>
+  <rect width="512" height="512" fill="#f5efe5"/>
+  <rect x="42" y="42" width="428" height="428" rx="68" fill="none" stroke="#8a3f2a" stroke-width="24"/>
 
-  <g fill="#0B2A5B">
-    <path d="M154 382 V130 H208 V238 L316 130 H378 L268 248 L392 382 H326 L236 266 L208 294 V382 Z"/>
+  <g fill="#263753">
+    <path d="M146 380V132h58v112l104-112h76L273 246l122 134h-72l-86-94-33 36v58z"/>
+  </g>
+  <g fill="#8a3f2a">
+    <circle cx="365" cy="132" r="24"/>
   </g>
 </svg>

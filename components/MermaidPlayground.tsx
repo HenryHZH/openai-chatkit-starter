@@ -251,6 +251,27 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
     }
   }, [isFullscreen, renderedSvg]);
 
+  useEffect(() => {
+    if (!isFullscreen) {
+      return;
+    }
+
+    const handleKeydown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsFullscreen(false);
+      }
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeydown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeydown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isFullscreen]);
+
   const scale = useMemo(() => Math.max(1, zoom / 100), [zoom]);
 
   const handlePointerDown = useCallback(
@@ -365,14 +386,14 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
     <div
       className={
         className ??
-        "relative min-h-[320px] overflow-hidden rounded-lg border border-slate-200 bg-white/90 p-4 shadow-inner dark:border-slate-800 dark:bg-slate-900/80"
+        "relative min-h-[330px] overflow-hidden rounded-[1.1rem] border border-[var(--border-soft)] bg-[color-mix(in_oklab,var(--surface-raised)_86%,transparent)] p-4 shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--surface-raised)_72%,transparent)]"
       }
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={endPointerTracking}
       onPointerCancel={endPointerTracking}
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,_rgba(148,163,184,0.12)_1px,_transparent_0)] bg-[length:20px_20px]" />
+      <div className="canvas-grid pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,color-mix(in_oklab,var(--ink-520)_18%,transparent)_1px,transparent_0)] bg-[length:22px_22px]" />
       <div
         className="relative origin-top-left"
         style={{
@@ -389,59 +410,67 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
         />
       </div>
       {error ? (
-        <p className="mt-3 text-sm text-rose-600 dark:text-rose-400">{error}</p>
+        <p className="mt-3 text-sm text-[var(--danger)]">{error}</p>
       ) : null}
     </div>
   );
 
   return (
-    <section className="relative overflow-hidden rounded-xl border border-slate-200 bg-white/90 p-6 shadow-2xl backdrop-blur-lg dark:border-slate-800 dark:bg-slate-900/85">
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-24 rounded-full bg-gradient-to-b from-slate-100/70 via-white/0 to-white/0 blur-2xl dark:from-slate-800/60" />
-      <div className="relative space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-50">
-            案例可视化图表
-          </h2>
-          <div className="flex items-center gap-3">
+    <section className="mermaid-studio surface-panel relative overflow-hidden p-5 sm:p-6">
+      <div className="canvas-halo pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--accent-cool)_28%,transparent),transparent_60%)]" />
+      <div className="relative space-y-5">
+        <div className="mermaid-toolbar">
+          <div className="space-y-2">
+            <p className="panel-label">图谱工作区</p>
+            <h2 className="text-[clamp(1.55rem,2.2vw+0.8rem,2.3rem)] leading-tight text-[var(--ink-900)]">
+              案件可视化图表
+            </h2>
+            <p className="max-w-[56ch] text-sm leading-6 text-[var(--ink-650)]">
+              自动识别剪贴板中的 Mermaid 代码。你可以拖拽画布、缩放局部结构，并在报错后一键修复语法。
+            </p>
+          </div>
+          <div className="mermaid-actions">
             {clipboardCode && !inputCode ? (
-              <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-900/60 dark:text-emerald-100 dark:ring-emerald-800/80">
-                剪贴板内容已自动渲染
+              <span className="control-pill border-[color-mix(in_oklab,var(--accent-mint)_46%,transparent)] bg-[color-mix(in_oklab,var(--accent-mint)_20%,transparent)] text-[var(--accent-mint)]">
+                剪贴板已接入
               </span>
             ) : null}
             <button
               type="button"
-              className="rounded-full bg-indigo-600 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-white ring-1 ring-indigo-500/70 transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-60"
+              className="control-pill"
+              data-variant="primary"
               onClick={handleFixSyntax}
               disabled={!effectiveCode.trim() || isFixingSyntax || Boolean(pendingFixedCode)}
             >
               {isFixingSyntax
-                ? "修复中..."
+                ? "语法修复中"
                 : pendingFixedCode
-                  ? "渲染中..."
+                  ? "重渲染中"
                   : lastFixedCode && lastFixedCode === effectiveCode
                     ? "已修复"
                     : "一键修复"}
             </button>
             <button
               type="button"
-              className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700/80"
+              className="control-pill"
+              data-variant="quiet"
               onClick={() => setIsInputCollapsed((current) => !current)}
             >
-              {isInputCollapsed ? "展开输入" : "收起输入"}
+              {isInputCollapsed ? "显示源码" : "收起源码"}
             </button>
           </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-5">
           {fixError ? (
-            <p className="text-sm text-rose-600 dark:text-rose-400">{fixError}</p>
+            <p className="text-sm text-[var(--danger)]">{fixError}</p>
           ) : null}
+
           {!isInputCollapsed ? (
-            <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-inner dark:border-slate-800 dark:bg-slate-900">
+            <div className="surface-subtle overflow-hidden">
               <textarea
-                className="w-full resize-none bg-transparent px-4 py-3 font-mono text-sm text-slate-800 outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:text-slate-100"
-                rows={2}
-                style={{ maxHeight: "5.5rem" }}
+                className="min-h-[4.4rem] w-full resize-y bg-transparent px-4 py-3 text-sm leading-6 text-[var(--ink-780)] outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_oklab,var(--accent-cool)_45%,transparent)]"
+                rows={3}
                 value={inputCode}
                 onChange={(event) => {
                   setInputCode(event.target.value);
@@ -449,29 +478,30 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
                   setPendingFixedCode(null);
                 }}
                 spellCheck={false}
-                placeholder="复制或输入后立即渲染"
+                placeholder="粘贴 Mermaid 代码后将自动渲染"
               />
             </div>
           ) : null}
 
           <div className="space-y-3">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-sm font-medium text-slate-700 dark:text-slate-200">
-              <div className="flex items-center gap-2">
-                <span>预览</span>
+            <div className="mermaid-toolbar text-sm">
+              <div className="flex items-center gap-2 text-[var(--ink-650)]">
+                <span className="panel-label">预览画布</span>
               </div>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+              <div className="mermaid-actions">
                 <button
                   type="button"
-                  className="rounded-full bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700 shadow-sm ring-1 ring-slate-200/80 transition hover:bg-slate-50 backdrop-blur dark:bg-slate-800/70 dark:text-slate-200 dark:ring-slate-700/80 dark:hover:bg-slate-700/80"
+                  className="control-pill"
+                  data-variant="quiet"
                   onClick={resetPreview}
                 >
-                  默认
+                  复位视图
                 </button>
-                <label className="flex items-center gap-3 rounded-full bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700 shadow-sm ring-1 ring-slate-200/80 backdrop-blur dark:bg-slate-800/70 dark:text-slate-200 dark:ring-slate-700/80">
+                <label className="mermaid-zoom rounded-full border border-[var(--border-soft)] bg-[color-mix(in_oklab,var(--surface-raised)_86%,transparent)] px-4 py-[0.58rem] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--ink-650)]">
                   <span className="whitespace-nowrap">缩放</span>
                   <input
                     aria-label="预览缩放"
-                    className="h-2 w-36 cursor-pointer appearance-none rounded-full bg-slate-200 accent-indigo-500 dark:bg-slate-700"
+                    className="h-2 w-36 cursor-pointer appearance-none rounded-full bg-[color-mix(in_oklab,var(--ink-520)_26%,transparent)] accent-[color-mix(in_oklab,var(--accent-main)_85%,white)]"
                     type="range"
                     min={100}
                     max={500}
@@ -479,48 +509,47 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
                     value={zoom}
                     onChange={(event) => setZoom(Number(event.target.value))}
                   />
-                  <span className="w-12 text-right tabular-nums text-sm">{zoom}%</span>
+                  <span className="w-12 text-right text-xs tabular-nums">{zoom}%</span>
                 </label>
                 <button
                   type="button"
-                  className="rounded-full bg-indigo-600 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white shadow-sm ring-1 ring-indigo-500/70 transition hover:bg-indigo-500 backdrop-blur dark:ring-indigo-400/70"
+                  className="control-pill"
+                  data-variant="primary"
                   onClick={() => setIsFullscreen(true)}
                 >
-                  全屏
+                  全屏预览
                 </button>
               </div>
             </div>
-            <PreviewCanvas
-              containerRef={inlineContainerRef}
-              isActive={!isFullscreen}
-            />
+            <PreviewCanvas containerRef={inlineContainerRef} isActive={!isFullscreen} />
           </div>
         </div>
       </div>
       {isFullscreen
         ? createPortal(
-            <div className="fixed inset-0 z-50 bg-slate-900/95 text-slate-50 backdrop-blur-md">
+            <div className="fixed inset-0 z-50 bg-[color-mix(in_oklab,var(--surface-base)_88%,black)] text-[var(--ink-900)] backdrop-blur-xl">
               <div className="flex h-full flex-col">
-                <div className="flex items-center justify-between px-6 py-4">
-                  <div className="flex items-center gap-3 text-sm font-semibold uppercase tracking-[0.14em] text-slate-200">
+                <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 sm:px-6">
+                  <div className="flex flex-wrap items-center gap-3 text-sm font-semibold uppercase tracking-[0.14em] text-[var(--ink-780)]">
                     <span>Mermaid 全屏预览</span>
-                    <span className="rounded-full bg-slate-800/70 px-3 py-1 text-xs text-slate-200 ring-1 ring-slate-700">
+                    <span className="rounded-full border border-[var(--border-soft)] bg-[color-mix(in_oklab,var(--surface-raised)_70%,transparent)] px-3 py-1 text-xs text-[var(--ink-780)]">
                       缩放 {zoom}%
                     </span>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-2.5">
                     <button
                       type="button"
-                      className="rounded-full bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-100 shadow-sm ring-1 ring-slate-600 transition hover:bg-white/20"
+                      className="control-pill"
+                      data-variant="quiet"
                       onClick={resetPreview}
                     >
-                      默认
+                      复位视图
                     </button>
-                    <label className="flex items-center gap-3 rounded-full bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-100 shadow-sm ring-1 ring-slate-700/80">
+                    <label className="mermaid-zoom rounded-full border border-[var(--border-soft)] bg-[color-mix(in_oklab,var(--surface-raised)_72%,transparent)] px-4 py-[0.58rem] text-xs font-semibold uppercase tracking-[0.12em] text-[var(--ink-780)]">
                       <span className="whitespace-nowrap">缩放</span>
                       <input
                         aria-label="全屏预览缩放"
-                        className="h-2 w-40 cursor-pointer appearance-none rounded-full bg-slate-700 accent-indigo-400"
+                        className="h-2 w-40 cursor-pointer appearance-none rounded-full bg-[color-mix(in_oklab,var(--ink-520)_26%,transparent)] accent-[color-mix(in_oklab,var(--accent-main)_85%,white)]"
                         type="range"
                         min={100}
                         max={500}
@@ -533,16 +562,16 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
                     <button
                       type="button"
                       aria-label="退出全屏"
-                      className="rounded-full bg-rose-500 px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-white shadow-sm ring-1 ring-rose-400 transition hover:bg-rose-400"
+                      className="control-pill border-[color-mix(in_oklab,var(--danger)_48%,transparent)] bg-[color-mix(in_oklab,var(--danger)_24%,transparent)] text-[var(--danger)]"
                       onClick={() => setIsFullscreen(false)}
                     >
-                      退出全屏
+                      退出
                     </button>
                   </div>
                 </div>
-                <div className="flex-1 overflow-hidden px-6 pb-8">
+                <div className="flex-1 overflow-hidden px-5 pb-6 sm:px-6 sm:pb-8">
                   <PreviewCanvas
-                    className="relative h-full min-h-[480px] w-full rounded-xl border border-slate-700 bg-slate-900/70 p-6 shadow-2xl"
+                    className="relative h-full min-h-[460px] w-full rounded-[1.2rem] border border-[var(--border-strong)] bg-[color-mix(in_oklab,var(--surface-raised)_56%,transparent)] p-6 shadow-[var(--shadow-lift)]"
                     containerRef={fullscreenContainerRef}
                     isActive={isFullscreen}
                   />

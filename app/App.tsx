@@ -22,43 +22,66 @@ export default function App() {
   }, []);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-100 via-slate-50 to-white text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-50">
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-0 h-48 bg-gradient-to-b from-slate-200/70 via-white/0 to-white/0 dark:from-slate-800/60" />
-
-      <div className="relative mx-auto flex min-h-screen w-full max-w-screen-2xl flex-col gap-10 px-6 py-14 md:px-10">
-        <header className="max-w-3xl space-y-3">
-          <span className="inline-flex items-center gap-2 rounded-md bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-50 shadow-sm ring-1 ring-slate-800 dark:bg-slate-800">
-            5分钟可视化分析
-          </span>
-          <div className="space-y-2">
-            <h1 className="text-4xl font-semibold leading-tight text-slate-900 dark:text-slate-50 sm:text-5xl">
-              案例分析专家
-            </h1>
-            <p className="text-lg text-slate-600 dark:text-slate-300">
-              上传完整的裁判文书/案卷，也可以直接键入案例
+    <main className="app-shell relative min-h-screen text-[var(--ink-900)]">
+      <div className="relative mx-auto flex w-full max-w-[1500px] flex-col gap-8 px-5 pb-14 pt-8 sm:px-8 lg:gap-10 lg:px-12 lg:pt-12">
+        <header className="intro-reveal grid gap-7 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
+          <div className="space-y-5">
+            <span className="badge-kicker">Case Studio · 5分钟结构化输出</span>
+            <h1 className="section-title max-w-[14ch]">案例分析专家</h1>
+            <p className="max-w-[56ch] text-base leading-7 text-[var(--ink-650)] sm:text-lg">
+              上传裁判文书、案卷材料或直接输入案情后，系统会同步生成
+              Chat 报告与 Mermaid 结构图，用于复盘事实链、争议点和裁判理由。
             </p>
           </div>
+
+          <aside className="surface-panel intro-reveal relative overflow-hidden p-6 sm:p-7">
+            <div className="canvas-halo pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--accent-cool)_42%,transparent),transparent_62%)]" />
+            <p className="panel-label relative">工作流</p>
+            <ol className="relative mt-4 space-y-4 text-sm leading-6 text-[var(--ink-650)]">
+              <li className="flex items-start gap-3">
+                <span className="mt-1 inline-flex h-5 w-5 items-center justify-center rounded-full border border-[var(--border-soft)] text-[11px] font-semibold text-[var(--ink-780)]">
+                  1
+                </span>
+                <span>在右侧会话中给出案件背景，并上传原始文书。</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-1 inline-flex h-5 w-5 items-center justify-center rounded-full border border-[var(--border-soft)] text-[11px] font-semibold text-[var(--ink-780)]">
+                  2
+                </span>
+                <span>左侧实时查看关系图，定位事实与法律要件的对应。</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mt-1 inline-flex h-5 w-5 items-center justify-center rounded-full border border-[var(--border-soft)] text-[11px] font-semibold text-[var(--ink-780)]">
+                  3
+                </span>
+                <span>根据输出继续追问，快速沉淀最终案例报告。</span>
+              </li>
+            </ol>
+          </aside>
         </header>
 
-        <section className="relative overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900">
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-slate-100/70 via-white/0 to-slate-200/30 dark:from-slate-800/30" />
-          <BouncingBalls />
+        <section className="relative">
+          <div className="surface-panel relative overflow-hidden px-3 py-3 sm:px-4 sm:py-4">
+            <div className="canvas-grid pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,color-mix(in_oklab,var(--ink-520)_14%,transparent)_1px,transparent_1px),linear-gradient(to_bottom,color-mix(in_oklab,var(--ink-520)_14%,transparent)_1px,transparent_1px)] bg-[size:30px_30px]" />
+            <div className="relative mb-3 flex flex-wrap items-center justify-between gap-3 px-2 pt-1 sm:px-3">
+              <span className="panel-label">证据动态场</span>
+              <span className="text-xs font-medium text-[var(--ink-520)]">
+                拖拽粒子可模拟事实权重与冲突碰撞
+              </span>
+            </div>
+            <BouncingBalls scheme={scheme} />
+          </div>
         </section>
 
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.05fr_1.15fr]">
+        <section className="grid grid-cols-1 gap-7 xl:grid-cols-[1.08fr_1fr]">
           <MermaidPlayground scheme={scheme} />
-
-          <div className="relative rounded-lg bg-white shadow-xl dark:bg-slate-900">
-            <div className="absolute inset-x-10 top-0 h-20 rounded-full bg-gradient-to-b from-slate-100/80 via-white/0 to-white/0 blur-2xl dark:from-slate-800/60" />
-            <ChatKitPanel
-              theme={scheme}
-              onWidgetAction={handleWidgetAction}
-              onResponseEnd={handleResponseEnd}
-              onThemeRequest={setScheme}
-            />
-          </div>
-        </div>
-
+          <ChatKitPanel
+            theme={scheme}
+            onWidgetAction={handleWidgetAction}
+            onResponseEnd={handleResponseEnd}
+            onThemeRequest={setScheme}
+          />
+        </section>
       </div>
     </main>
   );

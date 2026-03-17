@@ -50,10 +50,10 @@ export function ChatKitPanel(props: ChatKitPanelProps) {
 
   if (!isWorkflowConfigured) {
     return (
-      <div className="relative pb-8 flex h-[90vh] w-full rounded-lg flex-col overflow-hidden bg-white shadow-sm transition-colors dark:bg-slate-900">
+      <div className="surface-panel relative flex h-[min(76vh,840px)] min-h-[560px] w-full flex-col overflow-hidden">
         <ErrorOverlay
           error={null}
-          fallbackMessage="Set NEXT_PUBLIC_CHATKIT_WORKFLOW_ID in your environment to enable the assistant."
+          fallbackMessage="未检测到工作流配置。请设置 NEXT_PUBLIC_CHATKIT_WORKFLOW_ID 后再启动助手。"
           onRetry={null}
         />
       </div>
@@ -343,6 +343,28 @@ function ConfiguredChatKitPanel({
 
   const activeError = errors.session ?? errors.integration;
   const blockingError = errors.script ?? activeError;
+  const statusLabel = blockingError
+    ? "会话异常"
+    : isInitializingSession
+      ? "建立连接中"
+      : "会话在线";
+  const statusStyle = blockingError
+    ? {
+        background: "color-mix(in oklab, var(--danger) 20%, transparent)",
+        color: "var(--danger)",
+        borderColor: "color-mix(in oklab, var(--danger) 48%, transparent)",
+      }
+    : isInitializingSession
+      ? {
+          background: "color-mix(in oklab, var(--accent-cool) 18%, transparent)",
+          color: "var(--accent-cool)",
+          borderColor: "color-mix(in oklab, var(--accent-cool) 45%, transparent)",
+        }
+      : {
+          background: "color-mix(in oklab, var(--accent-mint) 22%, transparent)",
+          color: "var(--accent-mint)",
+          borderColor: "color-mix(in oklab, var(--accent-mint) 45%, transparent)",
+        };
 
   if (isDev) {
     console.debug("[ChatKitPanel] render state", {
@@ -355,11 +377,27 @@ function ConfiguredChatKitPanel({
   }
 
   return (
-    <div className="relative pb-8 flex h-[90vh] w-full rounded-lg flex-col overflow-hidden bg-white shadow-sm transition-colors dark:bg-slate-900">
-      <div className="flex items-start justify-between gap-3 border-b border-slate-200/60 bg-white/80 px-6 py-4 text-slate-700 backdrop-blur dark:border-slate-800/60 dark:bg-slate-900/70 dark:text-slate-200">
-        <p className="text-base font-semibold leading-6">案例报告</p>
+    <div className="surface-panel relative flex h-[min(76vh,840px)] min-h-[560px] w-full flex-col overflow-hidden">
+      <div className="relative border-b border-[var(--border-soft)] px-5 pb-4 pt-5 sm:px-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="panel-label">智能助手面板</p>
+            <p className="mt-1 text-base font-semibold leading-6 text-[var(--ink-900)]">
+              案例对话与报告生成
+            </p>
+          </div>
+          <span
+            className="inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-semibold tracking-[0.12em]"
+            style={statusStyle}
+          >
+            {statusLabel}
+          </span>
+        </div>
+        <p className="mt-3 text-sm leading-6 text-[var(--ink-650)]">
+          你可以直接追问事实细节、裁判理由、争议焦点，也可以让助手切换主题色。
+        </p>
       </div>
-      <div className="relative flex-1 min-h-0 px-5 pb-6 pt-4">
+      <div className="relative min-h-0 flex-1 px-4 pb-5 pt-4 sm:px-5">
         <ChatKit
           key={widgetInstanceKey}
           control={chatkit.control}
@@ -374,10 +412,10 @@ function ConfiguredChatKitPanel({
           fallbackMessage={
             blockingError || !isInitializingSession
               ? null
-              : "Loading assistant session..."
+              : "正在建立助手会话…"
           }
           onRetry={blockingError && errors.retryable ? handleResetChat : null}
-          retryLabel="Restart chat"
+          retryLabel="重新连接"
         />
       </div>
     </div>

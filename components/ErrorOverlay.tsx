@@ -26,13 +26,14 @@ export function ErrorOverlay({
   }
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-10 flex h-full w-full flex-col justify-center rounded-[inherit] bg-white/85 p-6 text-center backdrop-blur dark:bg-slate-900/90">
-      <div className="pointer-events-auto mx-auto w-full max-w-md rounded-xl bg-white px-6 py-4 text-lg font-medium text-slate-700 dark:bg-transparent dark:text-slate-100">
-        <div>{content}</div>
+    <div className="pointer-events-none absolute inset-0 z-20 grid h-full w-full place-items-center rounded-[inherit] bg-[color-mix(in_oklab,var(--surface-raised)_75%,transparent)] p-5 text-center backdrop-blur-md">
+      <div className="pointer-events-auto mx-auto w-full max-w-lg rounded-[1.1rem] border border-[var(--border-soft)] bg-[color-mix(in_oklab,var(--surface-raised)_94%,transparent)] px-6 py-5 text-base leading-7 text-[var(--ink-780)] shadow-[var(--shadow-soft)]">
+        <p role={error ? "alert" : "status"}>{content}</p>
         {error && onRetry ? (
           <button
             type="button"
-            className="mt-4 inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-none transition hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+            className="control-pill mt-4"
+            data-variant="primary"
             onClick={onRetry}
           >
             {retryLabel ?? "Restart chat"}
