@@ -33,6 +33,9 @@
   --shadow-lift: 0 28px 70px color-mix(in oklab, var(--ink-900) 16%, transparent);
 
   --grain-line: color-mix(in oklab, var(--ink-650) 14%, transparent);
+  --font-body: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-editorial: "Source Han Serif SC", "Songti SC", serif;
+
   --background: var(--surface-base);
   --foreground: var(--ink-900);
   color-scheme: light;
