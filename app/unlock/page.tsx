@@ -7,7 +7,7 @@ import { useState } from 'react'
 function UnlockContent() {
   const router = useRouter()
   const sp = useSearchParams()
-  const next = sp.get('next') ?? '/'
+  const next = sanitizeNextPath(sp.get('next'))
 
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -47,6 +47,22 @@ function UnlockContent() {
       {error && <p style={{ marginTop: 12 }}>{error}</p>}
     </main>
   )
+}
+
+function sanitizeNextPath(next: string | null): string {
+  if (!next || !next.startsWith('/')) {
+    return '/'
+  }
+
+  if (next.startsWith('//')) {
+    return '/'
+  }
+
+  if (next.includes('\\') || /%5c/i.test(next)) {
+    return '/'
+  }
+
+  return next
 }
 
 export default function UnlockPage() {
