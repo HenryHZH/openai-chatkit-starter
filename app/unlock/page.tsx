@@ -58,6 +58,10 @@ function sanitizeNextPath(next: string | null): string {
     return '/'
   }
 
+  if (next.includes('\\') || /%5c/i.test(next)) {
+    return '/'
+  }
+
   return next
 }
 
