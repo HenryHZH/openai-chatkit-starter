@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import type { ColorScheme } from "@/hooks/useColorScheme";
 
 type Ball = {
   x: number;
@@ -11,28 +12,80 @@ type Ball = {
   color: string;
 };
 
-const BALL_COUNT = 8;
-const GRAVITY = 900;
-const RESTITUTION = 0.82;
-const COLORS = [
-  "#ffd6e8",
-  "#d8e2dc",
-  "#ffe5b9",
-  "#e8f9fd",
-  "#d6f6ff",
-  "#d4c1ec",
-  "#fbe7c6",
-  "#c8f7c5",
-];
+type BouncingBallsProps = {
+  scheme: ColorScheme;
+};
 
-const RADII = [16, 12, 18, 14, 20, 13, 22, 15];
+type Palette = {
+  ballColors: string[];
+  backdropFrom: string;
+  backdropTo: string;
+  haloA: string;
+  haloB: string;
+};
+
+const BALL_COUNT = 9;
+const GRAVITY = 900;
+const RESTITUTION = 0.83;
+const RADII = [14, 11, 17, 13, 19, 15, 22, 12, 16];
+
+const LIGHT_PALETTE: Palette = {
+  ballColors: [
+    "#ad5234",
+    "#2f5f82",
+    "#3d775d",
+    "#9f6f37",
+    "#7a4759",
+    "#2c546e",
+    "#965839",
+    "#3d6956",
+    "#7f4e38",
+  ],
+  backdropFrom: "rgba(255, 252, 246, 0.72)",
+  backdropTo: "rgba(229, 238, 244, 0.36)",
+  haloA: "rgba(181, 90, 49, 0.16)",
+  haloB: "rgba(47, 95, 130, 0.14)",
+};
+
+const DARK_PALETTE: Palette = {
+  ballColors: [
+    "#d8a183",
+    "#8fb8d4",
+    "#93c3ac",
+    "#d8ba83",
+    "#c99aab",
+    "#96b6cf",
+    "#d4a58b",
+    "#9bc7b2",
+    "#d0af98",
+  ],
+  backdropFrom: "rgba(44, 51, 65, 0.78)",
+  backdropTo: "rgba(31, 39, 53, 0.86)",
+  haloA: "rgba(220, 163, 135, 0.14)",
+  haloB: "rgba(143, 184, 212, 0.12)",
+};
+
+const getPalette = (scheme: ColorScheme): Palette =>
+  scheme === "dark" ? DARK_PALETTE : LIGHT_PALETTE;
+
+const withAlpha = (hex: string, alpha: number) => {
+  const normalized = hex.replace("#", "");
+  if (normalized.length !== 6) {
+    return hex;
+  }
+  const value = Number.parseInt(normalized, 16);
+  const r = (value >> 16) & 255;
+  const g = (value >> 8) & 255;
+  const b = value & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
 
 const clampBall = (ball: Ball, width: number, height: number) => {
   ball.x = Math.min(Math.max(ball.x, ball.radius), Math.max(ball.radius, width - ball.radius));
   ball.y = Math.min(Math.max(ball.y, ball.radius), Math.max(ball.radius, height - ball.radius));
 };
 
-const createBalls = (width: number, height: number) =>
+const createBalls = (width: number, height: number, palette: Palette) =>
   Array.from({ length: BALL_COUNT }, (_, index) => {
     const radius = RADII[index % RADII.length];
     return {
@@ -41,11 +94,11 @@ const createBalls = (width: number, height: number) =>
       vx: (Math.random() - 0.5) * 120,
       vy: -80 - Math.random() * 60,
       radius,
-      color: COLORS[index % COLORS.length],
+      color: palette.ballColors[index % palette.ballColors.length],
     } satisfies Ball;
   });
 
-export function BouncingBalls() {
+export function BouncingBalls({ scheme }: BouncingBallsProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
@@ -57,6 +110,7 @@ export function BouncingBalls() {
   const lastPointerRef = useRef<{ x: number; y: number; time: number } | null>(null);
 
   useEffect(() => {
+    const palette = getPalette(scheme);
     const canvas = canvasRef.current;
     const container = containerRef.current;
     if (!canvas || !container) return;
@@ -81,9 +135,12 @@ export function BouncingBalls() {
       ctx.scale(dpr, dpr);
 
       if (ballsRef.current.length === 0) {
-        ballsRef.current = createBalls(rect.width, rect.height);
+        ballsRef.current = createBalls(rect.width, rect.height, palette);
       } else {
-        ballsRef.current.forEach((ball) => clampBall(ball, rect.width, rect.height));
+        ballsRef.current.forEach((ball, index) => {
+          ball.color = palette.ballColors[index % palette.ballColors.length];
+          clampBall(ball, rect.width, rect.height);
+        });
       }
     };
 
@@ -141,15 +198,48 @@ export function BouncingBalls() {
       ctx.clearRect(0, 0, width, height);
 
       const backdrop = ctx.createLinearGradient(0, 0, width, height);
-      backdrop.addColorStop(0, "rgba(226, 232, 240, 0.42)");
-      backdrop.addColorStop(1, "rgba(148, 163, 184, 0.18)");
+      backdrop.addColorStop(0, palette.backdropFrom);
+      backdrop.addColorStop(1, palette.backdropTo);
       ctx.fillStyle = backdrop;
       ctx.fillRect(0, 0, width, height);
 
+      const haloA = ctx.createRadialGradient(
+        width * 0.18,
+        height * 0.22,
+        width * 0.04,
+        width * 0.18,
+        height * 0.22,
+        width * 0.38
+      );
+      haloA.addColorStop(0, palette.haloA);
+      haloA.addColorStop(1, "transparent");
+      ctx.fillStyle = haloA;
+      ctx.fillRect(0, 0, width, height);
+
+      const haloB = ctx.createRadialGradient(
+        width * 0.82,
+        height * 0.72,
+        width * 0.04,
+        width * 0.82,
+        height * 0.72,
+        width * 0.44
+      );
+      haloB.addColorStop(0, palette.haloB);
+      haloB.addColorStop(1, "transparent");
+      ctx.fillStyle = haloB;
+      ctx.fillRect(0, 0, width, height);
+
       ballsRef.current.forEach((ball) => {
-        const glow = ctx.createRadialGradient(ball.x, ball.y, ball.radius * 0.2, ball.x, ball.y, ball.radius * 1.3);
-        glow.addColorStop(0, `${ball.color}dd`);
-        glow.addColorStop(1, `${ball.color}33`);
+        const glow = ctx.createRadialGradient(
+          ball.x,
+          ball.y,
+          ball.radius * 0.2,
+          ball.x,
+          ball.y,
+          ball.radius * 1.3
+        );
+        glow.addColorStop(0, withAlpha(ball.color, 0.9));
+        glow.addColorStop(1, withAlpha(ball.color, 0.24));
         ctx.fillStyle = glow;
         ctx.beginPath();
         ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
@@ -244,16 +334,16 @@ export function BouncingBalls() {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, []);
+  }, [scheme]);
 
   return (
     <div
       ref={containerRef}
-      className="relative h-[240px] w-full overflow-hidden rounded-lg bg-gradient-to-br from-white/90 via-slate-100/70 to-sky-50/60 shadow-inner backdrop-blur-md dark:from-slate-900/60 dark:via-slate-900/70 dark:to-slate-950/60"
+      className="relative h-[clamp(220px,27vw,290px)] w-full overflow-hidden rounded-[1.05rem] border border-[var(--border-soft)] bg-[color-mix(in_oklab,var(--surface-raised)_88%,transparent)] shadow-[var(--shadow-soft)]"
       style={{ touchAction: "none" }}
     >
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(59,130,246,0.12),transparent_35%),radial-gradient(circle_at_80%_60%,rgba(99,102,241,0.14),transparent_40%)]" />
+      <div className="canvas-halo pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_25%,color-mix(in_oklab,var(--accent-main)_18%,transparent),transparent_42%),radial-gradient(circle_at_78%_68%,color-mix(in_oklab,var(--accent-cool)_18%,transparent),transparent_45%)]" />
     </div>
   );
 }
