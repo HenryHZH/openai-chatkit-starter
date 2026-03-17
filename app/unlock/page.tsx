@@ -54,15 +54,35 @@ function sanitizeNextPath(next: string | null): string {
     return '/'
   }
 
-  if (next.startsWith('//')) {
+  const normalized = normalizeRedirectTarget(next)
+
+  if (normalized.startsWith('//')) {
     return '/'
   }
 
-  if (next.includes('\\') || /%5c/i.test(next)) {
+  if (normalized.includes('\\') || /%5c/i.test(normalized)) {
     return '/'
   }
 
   return next
+}
+
+function normalizeRedirectTarget(next: string): string {
+  let normalized = next
+
+  for (let i = 0; i < 3; i += 1) {
+    try {
+      const decoded = decodeURIComponent(normalized)
+      if (decoded === normalized) {
+        break
+      }
+      normalized = decoded
+    } catch {
+      break
+    }
+  }
+
+  return normalized.replace(/\\/g, '/')
 }
 
 export default function UnlockPage() {
