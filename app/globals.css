@@ -413,6 +413,11 @@ select {
   gap: clamp(0.9rem, 1.2vw, 1.35rem);
 }
 
+.mermaid-toolbar--header .mermaid-actions,
+.mermaid-toolbar--canvas .mermaid-actions {
+  margin-left: auto;
+}
+
 .mermaid-actions {
   display: flex;
   align-items: center;
@@ -433,8 +438,19 @@ select {
     align-items: stretch;
   }
 
+  .mermaid-toolbar--header,
+  .mermaid-toolbar--canvas {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
   .mermaid-actions {
     justify-content: flex-start;
+  }
+
+  .mermaid-toolbar--header .mermaid-actions,
+  .mermaid-toolbar--canvas .mermaid-actions {
+    justify-content: flex-end;
   }
 
   .mermaid-zoom {
@@ -446,6 +462,20 @@ select {
     flex: 1;
     min-width: 7.5rem;
   }
+}
+
+.chatkit-surface {
+  background: color-mix(in oklab, var(--surface-panel) 96%, var(--surface-raised));
+}
+
+.chatkit-widget {
+  background: color-mix(in oklab, var(--surface-raised) 78%, transparent);
+  border-radius: calc(var(--radius-md) + 0.15rem);
+}
+
+.chatkit-widget openai-chatkit,
+openai-chatkit.chatkit-widget {
+  background: transparent;
 }
 
 @media (pointer: coarse) {

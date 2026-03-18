@@ -419,7 +419,7 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
     <section className="mermaid-studio surface-panel relative overflow-hidden p-5 sm:p-6">
       <div className="canvas-halo pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--accent-cool)_28%,transparent),transparent_60%)]" />
       <div className="relative space-y-5">
-        <div className="mermaid-toolbar">
+        <div className="mermaid-toolbar mermaid-toolbar--header">
           <div className="space-y-2">
             <h2 className="text-[clamp(1.55rem,2.2vw+0.8rem,2.3rem)] leading-tight text-[var(--ink-900)]">
               可视化图表
@@ -480,7 +480,7 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
           ) : null}
 
           <div className="space-y-3">
-            <div className="mermaid-toolbar text-sm">
+            <div className="mermaid-toolbar mermaid-toolbar--canvas text-sm">
               <div className="flex items-center gap-2 text-[var(--ink-650)]">
                 <span className="panel-label">预览画布</span>
               </div>

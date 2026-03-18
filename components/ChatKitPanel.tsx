@@ -356,16 +356,15 @@ function ConfiguredChatKitPanel({
   }
 
   return (
-    <div className="surface-panel relative flex h-[min(76vh,840px)] min-h-[560px] w-full flex-col overflow-hidden">
-      <div className="relative border-b border-[var(--border-soft)] px-5 pb-4 pt-5 sm:px-6" />
+    <div className="surface-panel chatkit-surface relative flex h-[min(76vh,840px)] min-h-[560px] w-full flex-col overflow-hidden">
       <div className="relative min-h-0 flex-1 px-4 pb-5 pt-4 sm:px-5">
         <ChatKit
           key={widgetInstanceKey}
           control={chatkit.control}
           className={
             blockingError || isInitializingSession
-              ? "pointer-events-none opacity-0"
-              : "block h-full w-full"
+              ? "chatkit-widget pointer-events-none opacity-0"
+              : "chatkit-widget block h-full w-full"
           }
         />
         <ErrorOverlay
