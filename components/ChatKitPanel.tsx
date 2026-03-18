@@ -53,7 +53,7 @@ export function ChatKitPanel(props: ChatKitPanelProps) {
       <div className="surface-panel relative flex h-[min(76vh,840px)] min-h-[560px] w-full flex-col overflow-hidden">
         <ErrorOverlay
           error={null}
-          fallbackMessage="未检测到工作流配置。请设置 NEXT_PUBLIC_CHATKIT_WORKFLOW_ID 后再启动助手。"
+          fallbackMessage="未检测到助手配置。请设置 NEXT_PUBLIC_CHATKIT_WORKFLOW_ID 后再启动助手。"
           onRetry={null}
         />
       </div>
@@ -357,9 +357,7 @@ function ConfiguredChatKitPanel({
 
   return (
     <div className="surface-panel relative flex h-[min(76vh,840px)] min-h-[560px] w-full flex-col overflow-hidden">
-      <div className="relative border-b border-[var(--border-soft)] px-5 pb-4 pt-5 sm:px-6">
-        <p className="panel-label">智能助手面板</p>
-      </div>
+      <div className="relative border-b border-[var(--border-soft)] px-5 pb-4 pt-5 sm:px-6" />
       <div className="relative min-h-0 flex-1 px-4 pb-5 pt-4 sm:px-5">
         <ChatKit
           key={widgetInstanceKey}
