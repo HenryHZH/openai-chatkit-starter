@@ -343,28 +343,7 @@ function ConfiguredChatKitPanel({
 
   const activeError = errors.session ?? errors.integration;
   const blockingError = errors.script ?? activeError;
-  const statusLabel = blockingError
-    ? "会话异常"
-    : isInitializingSession
-      ? "建立连接中"
-      : "会话在线";
-  const statusStyle = blockingError
-    ? {
-        background: "color-mix(in oklab, var(--danger) 20%, transparent)",
-        color: "var(--danger)",
-        borderColor: "color-mix(in oklab, var(--danger) 48%, transparent)",
-      }
-    : isInitializingSession
-      ? {
-          background: "color-mix(in oklab, var(--accent-cool) 18%, transparent)",
-          color: "var(--accent-cool)",
-          borderColor: "color-mix(in oklab, var(--accent-cool) 45%, transparent)",
-        }
-      : {
-          background: "color-mix(in oklab, var(--accent-mint) 22%, transparent)",
-          color: "var(--accent-mint)",
-          borderColor: "color-mix(in oklab, var(--accent-mint) 45%, transparent)",
-        };
+
 
   if (isDev) {
     console.debug("[ChatKitPanel] render state", {
@@ -379,23 +358,7 @@ function ConfiguredChatKitPanel({
   return (
     <div className="surface-panel relative flex h-[min(76vh,840px)] min-h-[560px] w-full flex-col overflow-hidden">
       <div className="relative border-b border-[var(--border-soft)] px-5 pb-4 pt-5 sm:px-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <p className="panel-label">智能助手面板</p>
-            <p className="mt-1 text-base font-semibold leading-6 text-[var(--ink-900)]">
-              案例对话与报告生成
-            </p>
-          </div>
-          <span
-            className="inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-semibold tracking-[0.12em]"
-            style={statusStyle}
-          >
-            {statusLabel}
-          </span>
-        </div>
-        <p className="mt-3 text-sm leading-6 text-[var(--ink-650)]">
-          你可以直接追问事实细节、裁判理由、争议焦点，也可以让助手切换主题色。
-        </p>
+        <p className="panel-label">智能助手面板</p>
       </div>
       <div className="relative min-h-0 flex-1 px-4 pb-5 pt-4 sm:px-5">
         <ChatKit

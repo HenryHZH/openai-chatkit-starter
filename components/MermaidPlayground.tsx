@@ -423,11 +423,8 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
           <div className="space-y-2">
             <p className="panel-label">图谱工作区</p>
             <h2 className="text-[clamp(1.55rem,2.2vw+0.8rem,2.3rem)] leading-tight text-[var(--ink-900)]">
-              案件可视化图表
+              可视化图表
             </h2>
-            <p className="max-w-[56ch] text-sm leading-6 text-[var(--ink-650)]">
-              自动识别剪贴板中的 Mermaid 代码。你可以拖拽画布、缩放局部结构，并在报错后一键修复语法。
-            </p>
           </div>
           <div className="mermaid-actions">
             {clipboardCode && !inputCode ? (
