@@ -222,6 +222,7 @@ select {
   background: color-mix(in oklab, var(--surface-raised) 88%, transparent);
   border: 1px solid color-mix(in oklab, var(--border-soft) 70%, transparent);
   border-radius: var(--radius-md);
+  position: relative;
 }
 
 .badge-kicker {
@@ -236,6 +237,41 @@ select {
   font-weight: 700;
   letter-spacing: 0.2em;
   padding: 0.5rem 0.95rem;
+  text-transform: uppercase;
+}
+
+.meta-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--accent-cool) 34%, transparent);
+  background: color-mix(in oklab, var(--surface-raised) 92%, transparent);
+  color: var(--ink-650);
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  padding: 0.33rem 0.7rem;
+  text-transform: uppercase;
+}
+
+.metric-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--accent-main) 34%, var(--surface-raised));
+  background: color-mix(in oklab, var(--surface-raised) 84%, transparent);
+  color: var(--ink-780);
+  font-size: 0.76rem;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding: 0.45rem 0.8rem;
+}
+
+.metric-chip strong {
+  color: var(--accent-main-strong);
+  font-size: 0.73rem;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -318,6 +354,51 @@ select {
 
 .canvas-grid {
   animation: pulseGrid 11s var(--ease-in-out) infinite;
+}
+
+.workflow-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.workflow-index {
+  margin-top: 0.18rem;
+  display: inline-flex;
+  height: 1.35rem;
+  width: 1.35rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--accent-main) 28%, var(--border-soft));
+  background: color-mix(in oklab, var(--surface-raised) 90%, transparent);
+  color: var(--ink-780);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.section-frame {
+  position: relative;
+}
+
+.section-frame::after {
+  content: "";
+  position: absolute;
+  inset: -0.35rem;
+  border-radius: calc(var(--radius-lg) + 0.4rem);
+  border: 1px solid color-mix(in oklab, var(--accent-cool) 14%, transparent);
+  pointer-events: none;
+  opacity: 0.45;
+}
+
+.orbital-ring {
+  position: absolute;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--accent-main) 28%, transparent);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--surface-raised) 76%, transparent),
+    0 0 0 18px color-mix(in oklab, var(--accent-cool) 5%, transparent);
+  animation: slowSpin 18s linear infinite;
 }
 
 .mermaid-studio {
@@ -404,6 +485,15 @@ select {
   }
   50% {
     opacity: 0.85;
+  }
+}
+
+@keyframes slowSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 
