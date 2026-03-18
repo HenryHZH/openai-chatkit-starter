@@ -38,10 +38,6 @@ export default function App() {
             <div className="space-y-5">
               <span className="badge-kicker">Case Studio · 5分钟结构化输出</span>
               <h1 className="section-title max-w-[14ch]">案例分析专家</h1>
-              <p className="max-w-[56ch] text-base leading-7 text-[var(--ink-650)] sm:text-lg">
-                上传裁判文书、案卷材料或直接输入案情后，系统会同步生成 Chat
-                报告与 Mermaid 结构图，用于复盘事实链、争议点和裁判理由。
-              </p>
               <div className="flex flex-wrap gap-2.5 pt-1">
                 <span className="metric-chip">
                   <strong>3</strong>
@@ -61,20 +57,6 @@ export default function App() {
             <aside className="surface-panel intro-reveal relative overflow-hidden p-6 sm:p-7">
               <div className="canvas-halo pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--accent-cool)_42%,transparent),transparent_62%)]" />
               <p className="panel-label relative">工作流</p>
-              <ol className="workflow-list relative mt-4 space-y-4 text-sm leading-6 text-[var(--ink-650)]">
-                <li className="flex items-start gap-3">
-                  <span className="workflow-index">1</span>
-                  <span>在右侧会话中给出案件背景，并上传原始文书。</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="workflow-index">2</span>
-                  <span>左侧实时查看关系图，定位事实与法律要件的对应。</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="workflow-index">3</span>
-                  <span>根据输出继续追问，快速沉淀最终案例报告。</span>
-                </li>
-              </ol>
             </aside>
           </div>
         </header>
@@ -82,12 +64,6 @@ export default function App() {
         <section className="relative">
           <div className="surface-panel section-frame relative overflow-hidden px-3 py-3 sm:px-4 sm:py-4">
             <div className="canvas-grid pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,color-mix(in_oklab,var(--ink-520)_14%,transparent)_1px,transparent_1px),linear-gradient(to_bottom,color-mix(in_oklab,var(--ink-520)_14%,transparent)_1px,transparent_1px)] bg-[size:30px_30px]" />
-            <div className="relative mb-3 flex flex-wrap items-center justify-between gap-3 px-2 pt-1 sm:px-3">
-              <span className="panel-label">证据动态场</span>
-              <span className="text-xs font-medium text-[var(--ink-520)]">
-                拖拽粒子可模拟事实权重与冲突碰撞
-              </span>
-            </div>
             <BouncingBalls scheme={scheme} />
           </div>
         </section>
