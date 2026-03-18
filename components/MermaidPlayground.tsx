@@ -421,7 +421,6 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
       <div className="relative space-y-5">
         <div className="mermaid-toolbar">
           <div className="space-y-2">
-            <p className="panel-label">图谱工作区</p>
             <h2 className="text-[clamp(1.55rem,2.2vw+0.8rem,2.3rem)] leading-tight text-[var(--ink-900)]">
               可视化图表
             </h2>
