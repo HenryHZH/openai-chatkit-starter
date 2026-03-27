@@ -481,9 +481,6 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
 
           <div className="flex min-h-0 flex-1 flex-col space-y-3">
             <div className="mermaid-toolbar mermaid-toolbar--canvas text-sm">
-              <div className="flex items-start gap-2 text-[var(--ink-650)]">
-                <span className="panel-label">预览画布</span>
-              </div>
               <div className="mermaid-actions mermaid-actions--canvas">
                 <button
                   type="button"
