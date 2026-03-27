@@ -482,14 +482,6 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
           <div className="flex min-h-0 flex-1 flex-col space-y-3">
             <div className="mermaid-toolbar mermaid-toolbar--canvas text-sm">
               <div className="mermaid-actions mermaid-actions--canvas">
-                <button
-                  type="button"
-                  className="control-pill"
-                  data-variant="quiet"
-                  onClick={resetPreview}
-                >
-                  复位
-                </button>
                 <label className="mermaid-zoom rounded-full border border-[var(--border-soft)] bg-[color-mix(in_oklab,var(--surface-raised)_86%,transparent)] px-4 py-[0.58rem] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--ink-650)]">
                   <span className="whitespace-nowrap">缩放</span>
                   <input
@@ -506,7 +498,15 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
                 </label>
                 <button
                   type="button"
-                  className="control-pill"
+                  className="control-pill min-w-[7.4rem] justify-center"
+                  data-variant="quiet"
+                  onClick={resetPreview}
+                >
+                  复位
+                </button>
+                <button
+                  type="button"
+                  className="control-pill min-w-[7.4rem] justify-center"
                   data-variant="primary"
                   onClick={() => setIsFullscreen(true)}
                 >
