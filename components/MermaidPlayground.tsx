@@ -416,9 +416,9 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
   );
 
   return (
-    <section className="mermaid-studio surface-panel relative overflow-hidden p-5 sm:p-6">
+    <section className="mermaid-studio surface-panel relative flex h-[min(76vh,840px)] min-h-[560px] flex-col overflow-hidden p-5 sm:p-6">
       <div className="canvas-halo pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--accent-cool)_28%,transparent),transparent_60%)]" />
-      <div className="relative space-y-5">
+      <div className="relative flex min-h-0 flex-1 flex-col space-y-5">
         <div className="mermaid-toolbar mermaid-toolbar--header">
           <div className="space-y-2">
             <h2 className="text-[clamp(1.55rem,2.2vw+0.8rem,2.3rem)] leading-tight text-[var(--ink-900)]">
@@ -457,7 +457,7 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
           </div>
         </div>
 
-        <div className="space-y-5">
+        <div className="flex min-h-0 flex-1 flex-col space-y-5">
           {fixError ? (
             <p className="text-sm text-[var(--danger)]">{fixError}</p>
           ) : null}
@@ -479,12 +479,12 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
             </div>
           ) : null}
 
-          <div className="space-y-3">
+          <div className="flex min-h-0 flex-1 flex-col space-y-3">
             <div className="mermaid-toolbar mermaid-toolbar--canvas text-sm">
               <div className="flex items-center gap-2 text-[var(--ink-650)]">
                 <span className="panel-label">预览画布</span>
               </div>
-              <div className="mermaid-actions">
+              <div className="mermaid-actions mermaid-actions--canvas">
                 <button
                   type="button"
                   className="control-pill"
@@ -517,7 +517,11 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
                 </button>
               </div>
             </div>
-            <PreviewCanvas containerRef={inlineContainerRef} isActive={!isFullscreen} />
+            <PreviewCanvas
+              className="relative min-h-0 flex-1 overflow-hidden rounded-[1.1rem] border border-[var(--border-soft)] bg-[color-mix(in_oklab,var(--surface-raised)_86%,transparent)] p-4 shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--surface-raised)_72%,transparent)]"
+              containerRef={inlineContainerRef}
+              isActive={!isFullscreen}
+            />
           </div>
         </div>
       </div>

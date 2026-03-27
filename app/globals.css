@@ -426,6 +426,11 @@ select {
   justify-content: flex-end;
 }
 
+.mermaid-actions--canvas {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+
 .mermaid-zoom {
   display: inline-flex;
   align-items: center;
@@ -446,6 +451,10 @@ select {
 
   .mermaid-actions {
     justify-content: flex-start;
+  }
+
+  .mermaid-actions--canvas {
+    flex-wrap: wrap;
   }
 
   .mermaid-toolbar--header .mermaid-actions,
