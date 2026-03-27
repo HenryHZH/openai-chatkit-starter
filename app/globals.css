@@ -494,21 +494,17 @@ select {
 }
 
 .chatkit-widget {
-  background:
-    linear-gradient(
-      160deg,
-      color-mix(in oklab, var(--surface-raised) 90%, var(--surface-base-alt)),
-      color-mix(in oklab, var(--surface-raised) 78%, var(--surface-base))
-    );
-  border-radius: calc(var(--radius-md) + 0.15rem);
-  border: 1px solid color-mix(in oklab, var(--border-soft) 74%, transparent);
+  background: transparent;
+  border-radius: inherit;
+  border: none;
   font-family: var(--font-serif);
   color: var(--ink-900);
 }
 
 .chatkit-widget openai-chatkit,
 openai-chatkit.chatkit-widget {
-  background: color-mix(in oklab, var(--surface-raised) 70%, transparent);
+  background: transparent;
+  border: none;
   border-radius: inherit;
   font-family: var(--font-serif);
 }
