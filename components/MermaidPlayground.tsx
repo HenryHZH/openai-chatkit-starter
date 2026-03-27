@@ -488,7 +488,7 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
                   data-variant="quiet"
                   onClick={resetPreview}
                 >
-                  复位视图
+                  复位
                 </button>
                 <label className="mermaid-zoom rounded-full border border-[var(--border-soft)] bg-[color-mix(in_oklab,var(--surface-raised)_86%,transparent)] px-4 py-[0.58rem] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--ink-650)]">
                   <span className="whitespace-nowrap">缩放</span>
@@ -510,7 +510,7 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
                   data-variant="primary"
                   onClick={() => setIsFullscreen(true)}
                 >
-                  全屏预览
+                  全屏
                 </button>
               </div>
             </div>
