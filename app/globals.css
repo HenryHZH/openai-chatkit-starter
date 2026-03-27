@@ -429,6 +429,7 @@ select {
 .mermaid-actions--canvas {
   flex-wrap: nowrap;
   align-items: flex-start;
+  gap: 0.5rem;
 }
 
 .mermaid-zoom {
@@ -454,7 +455,9 @@ select {
   }
 
   .mermaid-actions--canvas {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.2rem;
   }
 
   .mermaid-toolbar--header .mermaid-actions,
@@ -474,17 +477,41 @@ select {
 }
 
 .chatkit-surface {
-  background: color-mix(in oklab, var(--surface-panel) 96%, var(--surface-raised));
+  background:
+    radial-gradient(
+      circle at 86% 10%,
+      color-mix(in oklab, var(--accent-cool) 18%, transparent),
+      transparent 54%
+    ),
+    linear-gradient(
+      145deg,
+      color-mix(in oklab, var(--surface-panel) 88%, var(--surface-base-alt)),
+      color-mix(in oklab, var(--surface-raised) 80%, var(--surface-base))
+    );
 }
 
 .chatkit-widget {
-  background: color-mix(in oklab, var(--surface-raised) 78%, transparent);
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in oklab, var(--surface-raised) 90%, var(--surface-base-alt)),
+      color-mix(in oklab, var(--surface-raised) 78%, var(--surface-base))
+    );
   border-radius: calc(var(--radius-md) + 0.15rem);
+  border: 1px solid color-mix(in oklab, var(--border-soft) 74%, transparent);
+  font-family: var(--font-serif);
+  color: var(--ink-900);
 }
 
 .chatkit-widget openai-chatkit,
 openai-chatkit.chatkit-widget {
-  background: transparent;
+  background: color-mix(in oklab, var(--surface-raised) 70%, transparent);
+  border-radius: inherit;
+  font-family: var(--font-serif);
+}
+
+.chatkit-widget :is(p, span, li, button, input, textarea, h1, h2, h3, h4) {
+  font-family: var(--font-serif);
 }
 
 @media (pointer: coarse) {

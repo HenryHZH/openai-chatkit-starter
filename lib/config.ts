@@ -14,9 +14,9 @@ export const GREETING = "";
 export const getThemeConfig = (theme: ColorScheme): ThemeOption => ({
   color: {
     grayscale: {
-      hue: 233,
-      tint: theme === "dark" ? 8 : 6,
-      shade: theme === "dark" ? -3 : -4,
+      hue: 32,
+      tint: theme === "dark" ? 18 : 12,
+      shade: theme === "dark" ? -6 : -10,
     },
     accent: {
       primary: theme === "dark" ? "#e7c2a5" : "#8a3f2a",
