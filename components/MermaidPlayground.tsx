@@ -3,6 +3,8 @@
 import {
   useCallback,
   useEffect,
+  forwardRef,
+  useImperativeHandle,
   useMemo,
   useRef,
   useState,
@@ -61,7 +63,18 @@ type MermaidPlaygroundProps = {
   scheme: ColorScheme;
 };
 
-export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
+export type MermaidPlaygroundExportHandle = {
+  ensureRenderableForExport: () => Promise<{
+    success: boolean;
+    message?: string;
+  }>;
+  getExportElement: () => HTMLDivElement | null;
+};
+
+export const MermaidPlayground = forwardRef<
+  MermaidPlaygroundExportHandle,
+  MermaidPlaygroundProps
+>(function MermaidPlayground({ scheme }: MermaidPlaygroundProps, ref) {
   const [inputCode, setInputCode] = useState("");
   const [clipboardCode, setClipboardCode] = useState("");
   const [isInputCollapsed, setIsInputCollapsed] = useState(true);
@@ -82,6 +95,7 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
   const renderId = useRef(`mermaid-preview-${Math.random().toString(36).slice(2)}`);
   const inlineContainerRef = useRef<HTMLDivElement | null>(null);
   const fullscreenContainerRef = useRef<HTMLDivElement | null>(null);
+  const exportCardRef = useRef<HTMLDivElement | null>(null);
   const mermaidRef = useRef<MermaidAPI | null>(null);
   const pendingBindRef = useRef<((element: Element) => void) | null>(null);
   const pointerState = useRef<{
@@ -374,6 +388,73 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
     }
   }, [effectiveCode, error, errorSourceCode, isFixingSyntax]);
 
+  const attemptAutoFix = useCallback(async () => {
+    const sourceCode = effectiveCode.trim();
+    if (!sourceCode) {
+      return false;
+    }
+
+    const matchedRenderError =
+      error && errorSourceCode === sourceCode ? error : undefined;
+
+    try {
+      const response = await fetch("/api/mermaid-fix", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ code: sourceCode, renderError: matchedRenderError }),
+      });
+
+      const payload = (await response.json().catch(() => null)) as {
+        fixedCode?: string;
+      } | null;
+
+      if (!response.ok || !payload?.fixedCode) {
+        return false;
+      }
+
+      setInputCode(payload.fixedCode);
+      setPendingFixedCode(payload.fixedCode);
+      setRenderNonce((current) => current + 1);
+      return true;
+    } catch {
+      return false;
+    }
+  }, [effectiveCode, error, errorSourceCode]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      ensureRenderableForExport: async () => {
+        const sourceCode = effectiveCode.trim();
+        if (!sourceCode) {
+          return { success: false, message: "当前没有可导出的 Mermaid 图表内容" };
+        }
+
+        if (renderedSvg) {
+          return { success: true };
+        }
+
+        const fixed = await attemptAutoFix();
+        if (fixed) {
+          await new Promise((resolve) => window.setTimeout(resolve, 350));
+        }
+
+        if (renderedSvg || inlineContainerRef.current?.querySelector("svg")) {
+          return { success: true };
+        }
+
+        return {
+          success: false,
+          message: "图表渲染失败，自动修复未成功，请检查 Mermaid 语法后重试",
+        };
+      },
+      getExportElement: () => exportCardRef.current,
+    }),
+    [attemptAutoFix, effectiveCode, renderedSvg]
+  );
+
   const PreviewCanvas = ({
     className,
     containerRef,
@@ -479,7 +560,11 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
             </div>
           ) : null}
 
-          <div className="flex min-h-0 flex-1 flex-col space-y-3">
+          <div
+            ref={exportCardRef}
+            data-export-target="mermaid"
+            className="flex min-h-0 flex-1 flex-col space-y-3"
+          >
             <div className="mermaid-toolbar mermaid-toolbar--canvas text-sm">
               <div className="mermaid-actions mermaid-actions--canvas">
                 <label className="mermaid-zoom rounded-full border border-[var(--border-soft)] bg-[color-mix(in_oklab,var(--surface-raised)_86%,transparent)] px-4 py-[0.58rem] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--ink-650)]">
@@ -580,4 +665,4 @@ export function MermaidPlayground({ scheme }: MermaidPlaygroundProps) {
         : null}
     </section>
   );
-}
+});
